@@ -589,12 +589,11 @@ table.data td.forte{font-weight:600;color:var(--ink-2)}
 .marchi-bar{max-width:1360px;margin:0 auto;padding:7px 18px 0;
   display:flex;align-items:center;justify-content:space-between;gap:12px}
 /* firma del prodotto: KRONOS è un applicativo HANZO */
-.hanzo-firma{display:inline-flex;align-items:center;gap:7px;text-decoration:none;
-  opacity:.75;transition:opacity .15s}
+.hanzo-firma{display:inline-flex;align-items:center;text-decoration:none;
+  opacity:.8;transition:opacity .15s}
 .hanzo-firma:hover{opacity:1}
-.hanzo-firma img{width:19px;height:19px;object-fit:contain}
-.hanzo-firma span{font-size:.72rem;font-weight:800;letter-spacing:.19em;color:var(--ink-2)}
-@media (max-width:620px){ .hanzo-firma img{width:16px;height:16px} .hanzo-firma span{font-size:.64rem} }
+.hanzo-firma img{height:17px;width:auto;display:block}
+@media (max-width:620px){ .hanzo-firma img{height:14px} }
 .m3d{display:block;transform-style:preserve-3d;will-change:transform;
   animation:marchio-oscilla 8s ease-in-out infinite}
 .m3d:nth-child(2){animation-delay:-4s}
