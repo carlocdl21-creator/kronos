@@ -16,9 +16,32 @@
 
 -- ---------------------------------------------------------------- profili --
 create table if not exists public.profili (
-  id         uuid primary key references auth.users(id) on delete cascade,
-  nome       text not null,
+  id              uuid primary key references auth.users(id) on delete cascade,
+  nome            text not null,
+  ruolo           text not null check (ruolo in ('impresa','committenza')),
+  email           text,
+  attivo          boolean not null default false,   -- si entra solo dopo abilitazione
+  amministratore  boolean not null default false,   -- può abilitare gli altri
+  creato_il       timestamptz not null default now()
+);
+-- colonne aggiunte dopo la prima versione dello schema
+alter table public.profili add column if not exists email text;
+alter table public.profili add column if not exists attivo boolean not null default false;
+alter table public.profili add column if not exists amministratore boolean not null default false;
+
+-- ------------------------------------------------------- codici d'invito --
+-- Un codice per lato. Chi lo possiede può registrarsi in quel ruolo e in
+-- nessun altro: il ruolo lo decide il database leggendo il codice, non il
+-- browser. La tabella non ha nessuna policy: dal sito non è leggibile,
+-- la tocca soltanto la funzione di registrazione qui sotto.
+create table if not exists public.codici_invito (
+  codice     text primary key,
   ruolo      text not null check (ruolo in ('impresa','committenza')),
+  etichetta  text,
+  attivo     boolean not null default true,
+  scade_il   date,
+  usi_max    int not null default 10,
+  usi        int not null default 0,
   creato_il  timestamptz not null default now()
 );
 
@@ -31,7 +54,8 @@ stable
 security definer
 set search_path = public
 as $$
-  select coalesce((select ruolo from public.profili where id = auth.uid()), 'nessuno');
+  select coalesce((select ruolo from public.profili
+                     where id = auth.uid() and attivo), 'nessuno');
 $$;
 
 create or replace function public.e_impresa() returns boolean
@@ -39,6 +63,79 @@ language sql stable as $$ select public.ruolo() = 'impresa' $$;
 
 create or replace function public.e_autorizzato() returns boolean
 language sql stable as $$ select public.ruolo() in ('impresa','committenza') $$;
+
+create or replace function public.e_amministratore() returns boolean
+language sql stable security definer set search_path = public as $$
+  select coalesce((select amministratore from public.profili
+                     where id = auth.uid() and attivo), false);
+$$;
+
+/* Registrazione: l'utenza è già stata creata da Supabase (email e password),
+   qui il codice decide il ruolo. Il profilo nasce NON abilitato: entra solo
+   dopo il via libera di un amministratore. */
+create or replace function public.registrati(p_codice text, p_nome text)
+returns json
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  u uuid := auth.uid();
+  c public.codici_invito%rowtype;
+  esistente public.profili%rowtype;
+begin
+  if u is null then
+    raise exception 'NON_AUTENTICATO';
+  end if;
+
+  select * into esistente from public.profili where id = u;
+  if found then
+    return json_build_object('stato', case when esistente.attivo then 'attivo' else 'in_attesa' end,
+                             'ruolo', esistente.ruolo);
+  end if;
+
+  select * into c from public.codici_invito
+   where codice = upper(btrim(p_codice))
+     and attivo
+     and (scade_il is null or scade_il >= current_date)
+     and usi < usi_max;
+  if not found then
+    raise exception 'CODICE_NON_VALIDO';
+  end if;
+
+  insert into public.profili (id, nome, ruolo, email, attivo)
+  values (u,
+          coalesce(nullif(btrim(p_nome), ''), 'Senza nome'),
+          c.ruolo,
+          (select email from auth.users where id = u),
+          false);
+
+  update public.codici_invito set usi = usi + 1 where codice = c.codice;
+
+  return json_build_object('stato', 'in_attesa', 'ruolo', c.ruolo);
+end $$;
+
+revoke all on function public.registrati(text, text) from public;
+grant execute on function public.registrati(text, text) to authenticated;
+
+/* Il proprio profilo, anche quando non è ancora abilitato: serve
+   all'applicativo per dire "sei in attesa" invece di un errore secco. */
+create or replace function public.mio_profilo()
+returns json
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select case when p.id is null then null
+              else json_build_object('nome', p.nome, 'ruolo', p.ruolo,
+                                     'attivo', p.attivo,
+                                     'amministratore', p.amministratore)
+         end
+    from (select 1) x
+    left join public.profili p on p.id = auth.uid();
+$$;
+grant execute on function public.mio_profilo() to authenticated;
 
 -- ------------------------------------------------------------------ fasi --
 -- Una riga per attività del cronoprogramma. L'id è quello della baseline
@@ -134,6 +231,23 @@ alter table public.richieste_eventi  enable row level security;
 drop policy if exists profili_lettura on public.profili;
 create policy profili_lettura on public.profili
   for select to authenticated using (public.e_autorizzato());
+
+alter table public.codici_invito enable row level security;
+-- nessuna policy su codici_invito: dal sito non si legge e non si scrive
+
+drop policy if exists profili_amministrazione on public.profili;
+create policy profili_amministrazione on public.profili
+  for select to authenticated using (public.e_amministratore());
+
+drop policy if exists profili_abilitazione on public.profili;
+create policy profili_abilitazione on public.profili
+  for update to authenticated
+  using (public.e_amministratore()) with check (public.e_amministratore());
+
+drop policy if exists profili_rifiuto on public.profili;
+create policy profili_rifiuto on public.profili
+  for delete to authenticated
+  using (public.e_amministratore() and id <> auth.uid());
 
 -- Lettura di tutto il cantiere per entrambi i ruoli.
 do $$

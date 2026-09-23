@@ -595,3 +595,20 @@ table.data td.forte{font-weight:600;color:var(--ink-2)}
   .step{padding:5px 7px}
   .step-freccia{margin:0}
 }
+
+/* ─────────────── accesso, registrazione, abilitazione ─────────────── */
+.segm.larga{display:flex;width:100%;margin-bottom:16px}
+.segm.larga button{flex:1;justify-content:center;display:flex}
+.field .aiuto{font-size:.72rem;color:var(--mute);line-height:1.45;margin-top:2px}
+.login-attesa{text-align:center;padding:10px 0 4px}
+.login-attesa i{font-size:2rem;color:var(--warn);display:block;margin-bottom:8px}
+.login-attesa b{display:block;font-size:1rem;margin-bottom:6px}
+.login-attesa p{font-size:.82rem;color:var(--mute);margin-bottom:14px}
+
+.utenza{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.utenza:last-child{border-bottom:none}
+.utenza .chi{flex:1;min-width:0}
+.utenza .chi b{display:block;font-size:.86rem;font-weight:600}
+.utenza .chi span{font-size:.72rem;color:var(--mute);word-break:break-all}
+.utenza .azioni{display:flex;gap:6px;flex:none}
+#btnUtenze{border-color:var(--warn);color:var(--warn);font-weight:700}

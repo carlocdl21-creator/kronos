@@ -44,7 +44,6 @@ async function avvia(){
     const { creaStoreDemo } = await import("./store-demo.js");
     A.store = creaStoreDemo();
     $("demoBox").hidden = false;
-    $("loginForm").hidden = true;
   }
 
   let dentro = false;
@@ -53,7 +52,27 @@ async function avvia(){
 
   $("boot").hidden = true;
   if(dentro) await entraNellApp();
-  else $("login").hidden = false;
+  else mostraAccesso();
+}
+
+/** Schermata d'ingresso nello stato giusto: accesso, registrazione o attesa. */
+function mostraAccesso(modo){
+  $("login").hidden = false;
+  const stato = A.store?.statoRegistrazione;
+  const scelto = modo || (stato === "in_attesa" || stato === "senza_profilo" ? "attesa" : "accedi");
+
+  $("loginForm").hidden = scelto !== "accedi" || A.store?.mode === "demo";
+  $("regForm").hidden   = scelto !== "registrati";
+  $("attesaBox").hidden = scelto !== "attesa";
+  $("accessoSwitch").hidden = scelto === "attesa" || A.store?.mode === "demo";
+  document.querySelectorAll("#accessoSwitch button").forEach(b =>
+    b.classList.toggle("on", b.dataset.modo === scelto));
+
+  if(scelto === "attesa"){
+    $("attesaTesto").textContent = stato === "senza_profilo"
+      ? "L'utenza esiste ma non risulta registrata a nessuna delle due parti. Esci e registrati di nuovo con il codice ricevuto."
+      : "L'utenza è stata creata e attende l'abilitazione del responsabile della commessa. Riceverai accesso appena sarà approvata.";
+  }
 }
 
 async function entraNellApp(){
@@ -65,14 +84,16 @@ async function entraNellApp(){
   try{ await ricarica(); }
   catch(e){ toast(errMsg(e)); }
 
+  controllaUtenze();
   A.store.onCambio(() => { ricarica().catch(() => {}); });
   clearInterval(A._poll);
   A._poll = setInterval(() => { if(!document.hidden) ricarica().catch(() => {}); },
                         Math.max(15, CONFIG.POLL_SECONDI) * 1000);
 }
 
-function mostraErroreLogin(msg){
-  const box = $("logErr");
+function mostraErroreLogin(msg){ mostraErrore("logErr", msg); }
+function mostraErrore(id, msg){
+  const box = $(id);
   box.textContent = msg;
   box.hidden = false;
 }
@@ -89,9 +110,53 @@ $("loginForm").addEventListener("submit", async ev => {
     $("logPwd").value = "";
     await entraNellApp();
   }catch(e){
-    mostraErroreLogin(errMsg(e));
+    if(/IN_ATTESA|SENZA_PROFILO/.test(String(e?.message))) mostraAccesso("attesa");
+    else mostraErroreLogin(errMsg(e));
   }finally{
     btn.disabled = false; btn.textContent = "Accedi";
+  }
+});
+
+document.querySelectorAll("#accessoSwitch button").forEach(b =>
+  b.addEventListener("click", () => {
+    $("logErr").hidden = true; $("regErr").hidden = true;
+    mostraAccesso(b.dataset.modo);
+  }));
+
+$("attesaEsci").addEventListener("click", async () => {
+  await A.store.esci();
+  location.reload();
+});
+
+$("regForm").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  $("regErr").hidden = true;
+  const btn = $("regBtn");
+  const nome = $("regNome").value.trim();
+  const codice = $("regCodice").value.trim().toUpperCase();
+  if(nome.length < 3){ mostraErrore("regErr", "Scrivere nome e cognome per esteso."); return; }
+  if(!codice){ mostraErrore("regErr", "Serve il codice di accesso della propria parte."); return; }
+
+  btn.disabled = true; btn.textContent = "Invio in corso…";
+  try{
+    const esito = await A.store.registra({
+      email: $("regEmail").value.trim(),
+      password: $("regPwd").value,
+      nome, codice
+    });
+    $("regPwd").value = "";
+    if(esito.confermaEmail){
+      mostraAccesso("attesa");
+      $("attesaTesto").textContent =
+        "Ti abbiamo mandato un'email per confermare l'indirizzo. Aprila, poi torna qui e accedi: " +
+        "la registrazione si completa da sola e resta in attesa dell'abilitazione.";
+    } else {
+      mostraAccesso("attesa");
+    }
+  }catch(e){
+    mostraErrore("regErr", errMsg(e));
+  }finally{
+    btn.disabled = false; btn.textContent = "Richiedi l'accesso";
   }
 });
 
@@ -107,6 +172,100 @@ $("btnLogout").addEventListener("click", async () => {
   await A.store.esci();
   location.reload();
 });
+
+$("btnUtenze").addEventListener("click", apriUtenze);
+
+/** Elenco delle utenze: abilita chi ha chiesto di entrare, o lo rifiuta. */
+async function apriUtenze(){
+  let elenco = [];
+  try{ elenco = await A.store.utenze(); }
+  catch(e){ toast(errMsg(e)); return; }
+
+  const back = el("div","modale");
+  const box = el("div","modale-box");
+  box.appendChild(el("h3", null, "Utenze della commessa"));
+  box.appendChild(el("div","ctx",
+    "Chi si registra col codice resta in attesa finché non lo abiliti. " +
+    "Il codice dice da che parte sta; l'abilitazione dice se entra."));
+
+  const inAttesa = elenco.filter(u => !u.attivo);
+  const attive = elenco.filter(u => u.attivo);
+  const chiudi = () => { back.remove(); document.removeEventListener("keydown", onk); };
+  const onk = ev => { if(ev.key === "Escape") chiudi(); };
+
+  const riga = (u) => {
+    const r = el("div","utenza");
+    const chi = el("div","chi");
+    chi.appendChild(el("b", null, u.nome));
+    chi.appendChild(el("span", null,
+      `${u.email || "—"} · ${u.ruolo === "impresa" ? "impresa esecutrice" : "Stazione Appaltante / DL"}` +
+      (u.amministratore ? " · amministratore" : "")));
+    r.appendChild(chi);
+    const az = el("div","azioni");
+    if(!u.attivo){
+      const si = el("button","btn sm primary");
+      si.appendChild(el("i","bi bi-check-lg"));
+      si.appendChild(el("span", null, "Abilita"));
+      si.addEventListener("click", async () => {
+        try{ await A.store.abilita(u.id, true); toast(`${u.nome} abilitato.`); chiudi(); apriUtenze(); }
+        catch(e){ toast(errMsg(e)); }
+      });
+      az.appendChild(si);
+      const no = el("button","btn sm danger");
+      no.appendChild(el("i","bi bi-x-lg"));
+      no.addEventListener("click", async () => {
+        if(!confirm(`Rifiutare la richiesta di ${u.nome}?`)) return;
+        try{ await A.store.rifiuta(u.id); toast("Richiesta rifiutata."); chiudi(); apriUtenze(); }
+        catch(e){ toast(errMsg(e)); }
+      });
+      az.appendChild(no);
+    } else if(!u.amministratore){
+      const sospendi = el("button","btn sm ghost","Sospendi");
+      sospendi.addEventListener("click", async () => {
+        if(!confirm(`Sospendere l'accesso di ${u.nome}?`)) return;
+        try{ await A.store.abilita(u.id, false); toast("Accesso sospeso."); chiudi(); apriUtenze(); }
+        catch(e){ toast(errMsg(e)); }
+      });
+      az.appendChild(sospendi);
+    }
+    r.appendChild(az);
+    return r;
+  };
+
+  if(inAttesa.length){
+    box.appendChild(el("div","eyebrow", `In attesa di abilitazione (${inAttesa.length})`));
+    inAttesa.forEach(u => box.appendChild(riga(u)));
+  }
+  box.appendChild(el("div","eyebrow", `Abilitate (${attive.length})`));
+  if(attive.length) attive.forEach(u => box.appendChild(riga(u)));
+  else box.appendChild(el("div","ctx","Nessuna."));
+
+  const fine = el("div","row-end");
+  const ok = el("button","btn push","Chiudi");
+  ok.addEventListener("click", chiudi);
+  fine.appendChild(ok);
+  box.appendChild(fine);
+
+  back.appendChild(box);
+  back.addEventListener("click", ev => { if(ev.target === back) chiudi(); });
+  document.addEventListener("keydown", onk);
+  document.body.appendChild(back);
+}
+
+/** Pallino sul pulsante quando c'è qualcuno da abilitare. */
+async function controllaUtenze(){
+  const b = $("btnUtenze");
+  b.hidden = !A.store?.utente?.amministratore;
+  if(b.hidden) return;
+  try{
+    const elenco = await A.store.utenze();
+    const n = elenco.filter(u => !u.attivo).length;
+    $("btnUtenzeN").textContent = n ? String(n) : "";
+    b.style.borderColor = n ? "var(--warn)" : "var(--line-2)";
+    b.style.color = n ? "var(--warn)" : "var(--ink)";
+    b.title = n ? `${n} utenze in attesa di abilitazione` : "Utenze della commessa";
+  }catch(e){ /* niente pallino se non si riesce a leggere */ }
+}
 
 $("btnRefresh").addEventListener("click", async () => {
   try{ await ricarica(); toast("Dati aggiornati."); }

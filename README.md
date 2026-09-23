@@ -48,7 +48,7 @@ js/store-supabase.js    archivio condiviso: database, file, tempo reale
 js/store-demo.js        archivio dimostrativo locale (senza server)
 js/util.js              date, numeri, CSV, messaggi
 supabase/schema.sql     tabelle, ruoli, policy, bucket dei file
-supabase/utenti.sql     assegnazione dei ruoli alle utenze
+supabase/codici.sql     codici d'invito e prima utenza amministratrice
 dev-server.py           server locale di prova, senza cache
 assets/                 icone e marchi del raggruppamento
 manifest.json           per aggiungere KRONOS alla schermata Home del telefono
@@ -66,25 +66,42 @@ la libreria Supabase viene caricata dal CDN.
 1. Creare un progetto su <https://supabase.com> (regione Europa, es. Frankfurt).
    Annotare la password del database: Supabase la mostra una volta sola.
 2. **SQL Editor → New query**: incollare per intero `supabase/schema.sql`
-   ed eseguire. Crea tabelle, regole di accesso, i due archivi file e il
-   tempo reale. Si può ri-eseguire senza danni.
+   ed eseguire. Si può ri-eseguire senza danni.
    - Se compare l'avviso *REGOLE SUI FILE NON CREATE*, l'utenza dell'editor
      non può scrivere sulle tabelle di sistema: creare a mano le tre regole
-     da **Storage → Policies**, sui bucket `foto` e `documenti`
+     da **Storage → Policies** sui bucket `foto` e `documenti`
      (lettura: utenti autenticati; caricamento ed eliminazione: solo impresa).
-3. **Authentication → Users → Add user → Create new user**: un'utenza per
-   persona, con **Auto Confirm User spuntato**, altrimenti l'accesso viene
-   rifiutato con "email non confermata".
-4. **SQL Editor**: aprire `supabase/utenti.sql`, sostituire email e
-   nominativi con quelli veri ed eseguire. Senza questo passaggio l'accesso
-   si chiude con "Utenza priva di profilo": è il profilo che porta il ruolo.
+3. Creare **la sola utenza amministratrice** da **Authentication → Users →
+   Add user → Create new user**, con **Auto Confirm User spuntato**.
+   Tutti gli altri si registreranno da soli.
+4. **SQL Editor**: aprire `supabase/codici.sql`, mettere la propria email al
+   posto di `TUA-EMAIL@esempio.it` ed eseguire. Crea i due codici d'invito e
+   abilita l'amministratore. In fondo stampa codici e utenze: annotare i codici.
 5. **Project Settings → API**: copiare *Project URL* e la chiave
    *anon public* in `js/config.js`.
 
-Lo schema è stato collaudato su PostgreSQL 16: l'impresa scrive cantiere e
-avanzamenti ma non può inoltrare richieste a se stessa; la committenza legge
-tutto e ogni sua scrittura sul cantiere tocca zero righe; un'utenza senza
-profilo non vede nulla.
+### Come entrano gli altri
+
+Ognuno si registra dal sito con **il codice della propria parte**: quello
+`SA-…` per Stazione Appaltante e Direzione Lavori, quello `IMP-…` per
+l'impresa. Il ruolo lo decide il database leggendo il codice, non il browser:
+chi ha il codice della committenza non può entrare come impresa.
+
+Chi si registra resta **in attesa**. L'amministratore vede il pulsante con il
+numero delle richieste nella testata di KRONOS e abilita o rifiuta con un
+tocco. Il codice dice da che parte stai, l'abilitazione dice se entri.
+
+I codici hanno **scadenza** (120 giorni) e **numero massimo di usi**; si
+revocano in una riga:
+
+```sql
+update public.codici_invito set attivo = false where codice = 'SA-…';
+```
+
+Il modello è stato provato su PostgreSQL 16 impersonando i ruoli: un utente
+abilitato non riesce a nominarsi amministratore, a cambiarsi ruolo, ad
+abilitare altri, a leggere o creare codici; un codice inesistente viene
+respinto; chi è in attesa non vede nulla del cantiere.
 
 > Il piano gratuito mette in pausa il progetto dopo una settimana senza
 > accessi: si riattiva dal pannello in un minuto. Per un cantiere vero

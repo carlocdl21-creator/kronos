@@ -36,6 +36,11 @@
       Costruzione Nuovo Asilo Nido Comunale — Comune di Marcaria (MN)
     </div>
 
+    <div class="segm larga" id="accessoSwitch">
+      <button type="button" data-modo="accedi" class="on">Accedi</button>
+      <button type="button" data-modo="registrati">Registrati</button>
+    </div>
+
     <form id="loginForm" class="login-form" autocomplete="on">
       <label class="field"><span>Indirizzo email</span>
         <input type="email" id="logEmail" required autocomplete="username" placeholder="nome@dominio.it"></label>
@@ -44,6 +49,29 @@
       <div id="logErr" class="login-err" hidden></div>
       <button class="btn primary" id="logBtn" type="submit" style="justify-content:center;padding:11px">Accedi</button>
     </form>
+
+    <form id="regForm" class="login-form" autocomplete="on" hidden>
+      <label class="field"><span>Nome e cognome</span>
+        <input type="text" id="regNome" required autocomplete="name" placeholder="Mario Rossi"></label>
+      <label class="field"><span>Indirizzo email</span>
+        <input type="email" id="regEmail" required autocomplete="username" placeholder="nome@dominio.it"></label>
+      <label class="field"><span>Password</span>
+        <input type="password" id="regPwd" required autocomplete="new-password" minlength="8" placeholder="almeno 8 caratteri"></label>
+      <label class="field"><span>Codice di accesso</span>
+        <input type="text" id="regCodice" required autocomplete="off" spellcheck="false"
+               placeholder="SA-… oppure IMP-…" style="text-transform:uppercase">
+        <small class="aiuto">Il codice stabilisce da che parte entri: Stazione Appaltante o impresa. Te lo consegna il responsabile della commessa.</small>
+      </label>
+      <div id="regErr" class="login-err" hidden></div>
+      <button class="btn primary" id="regBtn" type="submit" style="justify-content:center;padding:11px">Richiedi l'accesso</button>
+    </form>
+
+    <div id="attesaBox" class="login-attesa" hidden>
+      <i class="bi bi-hourglass-split"></i>
+      <b>Richiesta inviata</b>
+      <p id="attesaTesto">L'utenza è stata creata e attende l'abilitazione del responsabile della commessa. Riceverai accesso appena sarà approvata.</p>
+      <button class="btn" id="attesaEsci">Esci</button>
+    </div>
 
     <div id="demoBox" class="login-demo" hidden>
       <span class="eyebrow">Modalità dimostrativa</span>
@@ -95,6 +123,7 @@
         <span class="whoami" id="whoami"></span>
         <span id="roleChip" class="role-chip sa"><i class="bi bi-person-badge"></i><span id="roleName">—</span></span>
         <button class="btn sm ghost" id="btnRefresh" title="Ricarica i dati dall'archivio"><i class="bi bi-arrow-clockwise"></i></button>
+        <button class="btn sm" id="btnUtenze" hidden title="Utenze in attesa"><i class="bi bi-person-check"></i> <span id="btnUtenzeN"></span></button>
         <button class="btn sm" id="btnLogout"><i class="bi bi-box-arrow-right"></i> Esci</button>
       </div>
     </div>

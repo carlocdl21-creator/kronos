@@ -100,6 +100,7 @@ export function creaStoreDemo(){
   return {
     mode: "demo",
     utente: null,
+    statoRegistrazione: null,
 
     async init(){
       try{
@@ -109,10 +110,15 @@ export function creaStoreDemo(){
       return false;
     },
     async entra(){ throw new Error("Accesso non disponibile in modalità dimostrativa."); },
+    async registra(){ throw new Error("Registrazione non disponibile in modalità dimostrativa."); },
+    async utenze(){ return []; },
+    async abilita(){}, async rifiuta(){},
     async entraDemo(ruolo){
+      this.statoRegistrazione = "dentro";
       this.utente = {
         id: "demo-" + ruolo,
         ruolo,
+        amministratore: ruolo === "impresa",
         nome: ruolo === "impresa" ? "Impresa esecutrice" : "Stazione Appaltante / DL",
         email: ruolo + "@dimostrativo.local"
       };

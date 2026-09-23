@@ -18,12 +18,15 @@ export function creaStoreSupabase(){
   let profili = {};                 // id -> {nome, ruolo}
   let canale = null;
 
-  async function caricaProfilo(userId, email){
-    const { data, error } = await sb.from("profili").select("id,nome,ruolo").eq("id", userId).maybeSingle();
+  /* Il proprio profilo passa da una funzione del database, non dalla tabella:
+     così si legge anche quando non si è ancora abilitati. */
+  async function profiloMio(){
+    const { data, error } = await sb.rpc("mio_profilo");
     if(error) throw error;
-    if(!data) throw new Error("Utenza priva di profilo: contattare il responsabile dell'applicativo.");
-    return { id:userId, email, nome:data.nome, ruolo:data.ruolo };
+    return data || null;
   }
+
+  const CHIAVE_CODICE = "kronos.codice-invito";
 
   function bucketDi(path){
     return path?.startsWith("documenti/") ? CONFIG.BUCKET_DOCUMENTI : CONFIG.BUCKET_FOTO;
@@ -37,18 +40,86 @@ export function creaStoreSupabase(){
     utente: null,
     sb,
 
+    /** Stato dopo l'accesso: "dentro", "in_attesa", "senza_profilo" o null. */
+    statoRegistrazione: null,
+
     async init(){
       const { data } = await sb.auth.getSession();
-      if(!data?.session) return false;
-      this.utente = await caricaProfilo(data.session.user.id, data.session.user.email);
+      if(!data?.session) { this.statoRegistrazione = null; return false; }
+      return await this.sistema(data.session.user);
+    },
+
+    /** Riconosce chi ha appena fatto accesso e decide se può entrare. */
+    async sistema(utenteAuth){
+      let p = await profiloMio();
+
+      // registrazione lasciata a metà: il codice è stato messo da parte
+      if(!p){
+        let inSospeso = null;
+        try{ inSospeso = JSON.parse(localStorage.getItem(CHIAVE_CODICE) || "null"); }catch(e){}
+        if(inSospeso?.codice){
+          try{
+            await sb.rpc("registrati", {p_codice: inSospeso.codice, p_nome: inSospeso.nome || ""});
+            p = await profiloMio();
+          }catch(e){ /* codice non più valido: si rifà la registrazione */ }
+          try{ localStorage.removeItem(CHIAVE_CODICE); }catch(e){}
+        }
+      }
+
+      if(!p){ this.statoRegistrazione = "senza_profilo"; this.utente = null; return false; }
+      if(!p.attivo){ this.statoRegistrazione = "in_attesa"; this.utente = null; return false; }
+
+      this.statoRegistrazione = "dentro";
+      this.utente = {
+        id: utenteAuth.id, email: utenteAuth.email,
+        nome: p.nome, ruolo: p.ruolo, amministratore: Boolean(p.amministratore)
+      };
       return true;
     },
 
     async entra(email, password){
       const { data, error } = await sb.auth.signInWithPassword({ email, password });
       if(error) throw error;
-      this.utente = await caricaProfilo(data.user.id, data.user.email);
+      const ok = await this.sistema(data.user);
+      if(!ok) throw new Error(this.statoRegistrazione === "in_attesa"
+        ? "IN_ATTESA" : "SENZA_PROFILO");
       return this.utente;
+    },
+
+    /** Crea l'utenza e, se la sessione parte subito, registra il profilo. */
+    async registra({email, password, nome, codice}){
+      const { data, error } = await sb.auth.signUp({
+        email, password, options: { data: { nome } }
+      });
+      if(error) throw error;
+      // con la conferma via email attiva non c'è ancora sessione: il codice
+      // viene messo da parte e usato al primo accesso
+      try{
+        localStorage.setItem(CHIAVE_CODICE, JSON.stringify({codice, nome}));
+      }catch(e){}
+      if(!data.session) return { confermaEmail: true };
+      const r = await sb.rpc("registrati", {p_codice: codice, p_nome: nome});
+      if(r.error) throw r.error;
+      try{ localStorage.removeItem(CHIAVE_CODICE); }catch(e){}
+      await this.sistema(data.user);
+      return { confermaEmail: false, stato: this.statoRegistrazione };
+    },
+
+    /* ---- amministrazione delle utenze ---- */
+    async utenze(){
+      const { data, error } = await sb.from("profili")
+        .select("id,nome,ruolo,email,attivo,amministratore,creato_il")
+        .order("attivo").order("creato_il");
+      if(error) throw error;
+      return data || [];
+    },
+    async abilita(id, si = true){
+      const { error } = await sb.from("profili").update({ attivo: si }).eq("id", id);
+      if(error) throw error;
+    },
+    async rifiuta(id){
+      const { error } = await sb.from("profili").delete().eq("id", id);
+      if(error) throw error;
     },
     async entraDemo(){ throw new Error("Modalità dimostrativa non disponibile: archivio condiviso attivo."); },
 
