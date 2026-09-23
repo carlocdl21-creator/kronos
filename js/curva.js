@@ -11,7 +11,7 @@ import { addDays, diffDays, iso, fmtD, el, clear, nf0 } from "./util.js";
 
 const MESI = ["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
 const SVGNS = "http://www.w3.org/2000/svg";
-const M = {t:10, r:58, b:22, l:32};          // margini: a destra spazio per le etichette
+const M = {t:10, r:96, b:22, l:32};          // margini: a destra spazio per le etichette
 const H = 146;
 
 const nodo = (t, attr) => {
@@ -26,11 +26,11 @@ function fraseContratto(r, t){
   return Math.max(0, Math.min(1, (diffDays(t, r.i) + 1) / tot));
 }
 
-/** Frazione realizzata alla data t, ricostruita dalla barra reale e dall'avanzamento dichiarato. */
-function frazioneReale(c, t, oggi){
+/** Frazione realizzata alla data t: l'avanzamento dichiarato per la
+ *  lavorazione, distribuito lungo la sua barra reale. */
+function frazioneReale(c, t){
   if(!c.av) return 0;
-  const fine = c.av >= 100 ? c.effF : (oggi > c.effI ? oggi : c.effI);
-  const tot = Math.max(1, diffDays(fine, c.effI) + 1);
+  const tot = Math.max(1, diffDays(c.effF, c.effI) + 1);
   const quota = Math.max(0, Math.min(1, (diffDays(t, c.effI) + 1) / tot));
   return quota * c.av / 100;
 }
@@ -52,12 +52,12 @@ export function disegnaCurva(box, {fasi, oggi, sc}){
     let prev = 0, real = 0;
     for(const r of TRACCIATE){
       prev += r.costo * fraseContratto(r, t);
-      if(t <= oggi) real += r.costo * frazioneReale(calc(r, fasi[r.id] || {}, oggi), t, oggi);
+      real += r.costo * frazioneReale(calc(r, fasi[r.id] || {}, oggi), t);
     }
     return {
       t,
       prev: COSTO_TRACCIATO ? prev / COSTO_TRACCIATO * 100 : 0,
-      real: t <= oggi ? (COSTO_TRACCIATO ? real / COSTO_TRACCIATO * 100 : 0) : null
+      real: COSTO_TRACCIATO ? real / COSTO_TRACCIATO * 100 : 0
     };
   });
 
@@ -90,11 +90,11 @@ export function disegnaCurva(box, {fasi, oggi, sc}){
   }
 
   /* ---- forbice fra previsto e realizzato ---- */
-  const conReale = serie.filter(p => p.real != null);
+  const conReale = serie;
   if(conReale.length > 1){
     const su = conReale.map(p => `${X(p.t)},${Y(p.prev)}`).join(" ");
     const giu = conReale.slice().reverse().map(p => `${X(p.t)},${Y(p.real)}`).join(" ");
-    svg.appendChild(nodo("polygon", {points:`${su} ${giu}`, fill:"#18181b", opacity:.07}));
+    svg.appendChild(nodo("polygon", {points:`${su} ${giu}`, fill:"#2383e2", opacity:.09}));
   }
 
   /* ---- le due curve ---- */
@@ -102,10 +102,10 @@ export function disegnaCurva(box, {fasi, oggi, sc}){
     points: pts.join(" "), fill:"none", "stroke-linejoin":"round", "stroke-linecap":"round", ...attr
   });
   svg.appendChild(linea(serie.map(p => `${X(p.t)},${Y(p.prev)}`),
-    {stroke:"#71717a", "stroke-width":2, "stroke-dasharray":"6 4"}));
+    {stroke:"#2383e2", "stroke-width":2, "stroke-dasharray":"6 4"}));
   if(conReale.length)
     svg.appendChild(linea(conReale.map(p => `${X(p.t)},${Y(p.real)}`),
-      {stroke:"#0a0a0a", "stroke-width":2.5}));
+      {stroke:"#15803d", "stroke-width":2.5}));
 
   /* ---- data odierna ---- */
   if(oggi >= sc.min && oggi <= sc.max){
@@ -116,25 +116,26 @@ export function disegnaCurva(box, {fasi, oggi, sc}){
   /* ---- etichette diritte in testa alle curve, al posto di una legenda muta ---- */
   const ultimo = serie[serie.length - 1];
   const etPrev = nodo("text", {x:W - M.r + 6, y:Y(ultimo.prev) + 3.5, "font-size":10,
-    fill:"#71717a", "font-weight":700});
+    fill:"#2383e2", "font-weight":700});
   etPrev.textContent = "contratto";
   svg.appendChild(etPrev);
 
   const ultimoReale = conReale[conReale.length - 1];
-  if(ultimoReale){
+  if(ultimoReale && ultimoReale.real > 0){
     const y = Y(ultimoReale.real);
-    svg.appendChild(nodo("circle", {cx:X(ultimoReale.t), cy:y, r:4, fill:"#0a0a0a"}));
-    const et = nodo("text", {x:X(ultimoReale.t) + 8, y:y + 3.5, "font-size":10,
-      fill:"#0a0a0a", "font-weight":700});
-    et.textContent = `realizzato ${nf0(ultimoReale.real)}%`;
+    svg.appendChild(nodo("circle", {cx:X(ultimoReale.t), cy:y, r:4, fill:"#15803d"}));
+    const et = nodo("text", {x:Math.min(X(ultimoReale.t) + 8, W - 6), y:y + 3.5, "font-size":10,
+      fill:"#15803d", "font-weight":700,
+      "text-anchor": X(ultimoReale.t) + 90 > W ? "end" : "start"});
+    et.textContent = `dichiarato ${nf0(ultimoReale.real)}%`;
     svg.appendChild(et);
   }
 
   /* ---- lettura al passaggio del mouse ---- */
   const cross = nodo("line", {y1:M.t, y2:H - M.b, stroke:"#0a0a0a", "stroke-width":1, opacity:0});
   svg.appendChild(cross);
-  const pallaP = nodo("circle", {r:4, fill:"#fff", stroke:"#71717a", "stroke-width":2, opacity:0});
-  const pallaR = nodo("circle", {r:4, fill:"#0a0a0a", opacity:0});
+  const pallaP = nodo("circle", {r:4, fill:"#fff", stroke:"#2383e2", "stroke-width":2, opacity:0});
+  const pallaR = nodo("circle", {r:4, fill:"#15803d", opacity:0});
   svg.appendChild(pallaP); svg.appendChild(pallaR);
 
   const tip = el("div","curva-tip");
@@ -153,22 +154,15 @@ export function disegnaCurva(box, {fasi, oggi, sc}){
     cross.setAttribute("x1", x); cross.setAttribute("x2", x);
     cross.setAttribute("opacity", .18);
     pallaP.setAttribute("cx", x); pallaP.setAttribute("cy", Y(vicino.prev)); pallaP.setAttribute("opacity", 1);
-    if(vicino.real != null){
-      pallaR.setAttribute("cx", x); pallaR.setAttribute("cy", Y(vicino.real)); pallaR.setAttribute("opacity", 1);
-    } else pallaR.setAttribute("opacity", 0);
+    pallaR.setAttribute("cx", x); pallaR.setAttribute("cy", Y(vicino.real)); pallaR.setAttribute("opacity", 1);
 
     clear(tip);
     tip.appendChild(el("b", null, fmtD(vicino.t)));
     tip.appendChild(el("span", null, `contratto ${nf0(vicino.prev)}%`));
-    if(vicino.real != null){
-      tip.appendChild(el("span", null, `realizzato ${nf0(vicino.real)}%`));
-      const d = vicino.real - vicino.prev;
-      const r = el("span", d < -3 ? "male" : "bene",
-        `${d >= 0 ? "+" : "−"}${nf0(Math.abs(d))} punti`);
-      tip.appendChild(r);
-    } else {
-      tip.appendChild(el("span","muted","non ancora rilevato"));
-    }
+    tip.appendChild(el("span", null, `dichiarato ${nf0(vicino.real)}%`));
+    const d = vicino.real - vicino.prev;
+    tip.appendChild(el("span", d < -3 ? "male" : "bene",
+      `${d >= 0 ? "+" : "−"}${nf0(Math.abs(d))} punti`));
     tip.hidden = false;
     tip.style.left = Math.min(Math.max(8, x - 60), W - 150) + "px";
   });

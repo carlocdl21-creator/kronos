@@ -96,14 +96,13 @@
         <button class="btn sm" id="expCsv"><i class="bi bi-download"></i> CSV</button>
       </div>
 
-      <div class="kpibar" id="kpis"></div>
       <div id="alertZone"></div>
 
       <!-- curva a S -->
       <div class="card">
         <div class="card-hd">
           <h2>Avanzamento previsto e realizzato</h2>
-          <span class="sub">Curva a S dell'avanzamento economico cumulato: la forbice fra le due linee è il ritardo, in punti percentuali.</span>
+          <span class="sub">Avanzamento economico cumulato: in blu quello di contratto, in verde quello dichiarato dall'impresa. La forbice fra le due linee è il ritardo, in punti.</span>
         </div>
         <div class="card-bd curva-box" id="curvaBox"></div>
       </div>
@@ -116,9 +115,9 @@
         </span>
         <span class="legend">
           <span><i class="sw sw-base"></i>Contratto</span>
-          <span><i class="sw sw-ok"></i>Reale in linea</span>
-          <span><i class="sw sw-no"></i>Da giustificare</span>
-          <span><i class="sw sw-note"></i>Giustificato</span>
+          <span><i class="sw sw-ok"></i>Reale</span>
+          <span><i class="sw sw-no"></i>Scostamento da giustificare</span>
+          <span><i class="bi bi-chat-square-text" style="color:var(--warn)"></i> Motivo registrato</span>
         </span>
         <span class="sub" id="realeHint"></span>
         <span class="zoom">

@@ -13,6 +13,9 @@
   --surface:#ffffff; --surface-2:#fafafa; --surface-3:#f4f4f5;
 
   --ok:#15803d;   --ok-bg:#dcfce7;   --ok-line:#86efac;
+  /* le due serie del cronoprogramma: coppia verificata anche per il daltonismo */
+  --contratto:#2383e2; --contratto-2:#93c5fd; --contratto-bg:#eff6ff;
+  --reale:#15803d;     --reale-2:#86efac;     --reale-bg:#f0fdf4;
   --warn:#b45309; --warn-bg:#fef3c7; --warn-line:#fcd34d;
   --no:#b91c1c;   --no-bg:#fef2f2;   --no-line:#fca5a5;
   --info:#2383e2;
@@ -80,8 +83,8 @@ a{color:var(--ink);text-underline-offset:2px}
 /* ───────────────────────────── testata ───────────────────────────── */
 .topbar{position:sticky;top:0;z-index:30;background:var(--surface);border-bottom:1px solid var(--line)}
 .topbar-in{
-  max-width:1360px;margin:0 auto;padding:8px 20px;
-  display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;
+  max-width:1360px;margin:0 auto;padding:8px 18px;
+  display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;
 }
 .commessa-mini{
   min-width:0;padding-left:18px;border-left:1px solid var(--line);
@@ -102,21 +105,21 @@ a{color:var(--ink);text-underline-offset:2px}
 .role-chip.sa{background:var(--surface-3);color:var(--ink-2);border:1px solid var(--line-2)}
 
 /* tab: pill switch come HANZO */
-.tabs{display:inline-flex;gap:3px;background:#f1f1f3;border:1px solid #e4e4e7;
-  border-radius:var(--r-md);padding:3px;max-width:100%;overflow-x:auto;scrollbar-width:none}
+.tabs{display:inline-flex;gap:4px;background:#f1f1f3;border:1px solid #e4e4e7;
+  border-radius:var(--r-lg);padding:4px;max-width:100%;overflow-x:auto;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
 .tab{
-  display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border:none;background:none;
-  border-radius:7px;font-size:.78rem;font-weight:700;color:#52525b;cursor:pointer;
+  display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border:none;background:none;
+  border-radius:9px;font-size:.86rem;font-weight:700;color:#3f3f46;cursor:pointer;
   white-space:nowrap;transition:background .15s,color .15s;
 }
-.tab i{font-size:.88rem}
+.tab i{font-size:1rem}
 .tab:hover{color:var(--ink);background:#e8e8ea}
-.tab[aria-selected="true"]{background:var(--ink);color:#fafafa;box-shadow:0 4px 12px rgba(10,10,10,.22)}
+.tab[aria-selected="true"]{background:var(--ink);color:#fafafa;box-shadow:0 4px 12px rgba(10,10,10,.28)}
 .tab[aria-selected="true"]:hover{background:var(--ink-2);color:#fafafa}
 .tab .cnt{
-  min-width:17px;height:16px;padding:0 5px;border-radius:6px;display:inline-flex;
-  align-items:center;justify-content:center;font-size:.66rem;font-weight:800;
+  min-width:19px;height:18px;padding:0 6px;border-radius:6px;display:inline-flex;
+  align-items:center;justify-content:center;font-size:.7rem;font-weight:800;
   background:var(--surface);border:1px solid var(--line-2);color:var(--ink);
 }
 .tab[aria-selected="true"] .cnt{background:#3f3f46;border-color:#52525b;color:#fafafa}
@@ -188,7 +191,7 @@ textarea{resize:vertical;min-height:84px;line-height:1.55}
 .st-agg{font-size:.7rem;color:var(--mute);margin-left:auto;text-align:right}
 .striscia .btn{margin-left:0}
 
-.kpibar{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));background:var(--surface);
+.kpibar{display:none;grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));background:var(--surface);
   border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden;box-shadow:var(--sh-1);margin:8px 0}
 .kp{padding:6px 12px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:0;min-width:0}
 .kp:last-child{border-right:none}
@@ -209,7 +212,7 @@ textarea{resize:vertical;min-height:84px;line-height:1.55}
   border-bottom:1px solid var(--line);background:var(--surface-2)}
 .legend{display:flex;gap:15px;flex-wrap:wrap;font-size:.73rem;color:var(--mute);align-items:center}
 .legend i.sw{display:inline-block;width:20px;height:9px;border-radius:3px;vertical-align:-1px;margin-right:6px}
-.sw-base{background:#3f3f46} .sw-ok{background:#3f3f46}
+.sw-base{background:var(--contratto)} .sw-ok{background:var(--reale)}
 .sw-no{background:var(--no)} .sw-note{background:var(--warn-line)}
 .zoom{margin-left:auto;display:flex;gap:5px;align-items:center}
 
@@ -244,26 +247,30 @@ textarea{resize:vertical;min-height:84px;line-height:1.55}
 /* barre */
 .gbar{
   position:absolute;top:calc(50% - var(--bar-h)/2);height:var(--bar-h);border-radius:5px;
-  background:#52525b;overflow:hidden;
+  overflow:hidden;
 }
-.grow[data-liv="0"] .gbar,.grow[data-liv="1"] .gbar,.grow[data-liv="2"] .gbar{
-  height:8px;top:calc(50% - 4px);background:var(--mute-2);border-radius:3px;border:none
+/* contratto: blu, pieno, sempre uguale */
+.gbar.contratto{background:var(--contratto)}
+.grow[data-liv="0"] .gbar.contratto,.grow[data-liv="1"] .gbar.contratto,
+.grow[data-liv="2"] .gbar.contratto{
+  height:8px;top:calc(50% - 4px);background:var(--contratto-2);border-radius:3px;border:none
 }
-.gbar > .fill{position:absolute;inset:0 auto 0 0;width:0;background:var(--ink-3)}
+.gbar > .fill{position:absolute;inset:0 auto 0 0;width:0;background:var(--reale)}
 
-/* barra reale: binario chiaro + riempimento = avanzamento, sempre leggibile */
+/* reale: verde, binario chiaro + riempimento pari all'avanzamento */
 .gbar.real{
-  background:var(--surface-3);border:1.5px solid var(--ink-3);cursor:default;
+  background:var(--reale-bg);border:1.5px solid var(--reale);cursor:default;
 }
 .grow[data-liv="0"] .gbar.real,.grow[data-liv="1"] .gbar.real,.grow[data-liv="2"] .gbar.real{
-  background:var(--surface-3);border:1px solid var(--mute-2)
+  height:8px;top:calc(50% - 4px);border-radius:3px;border-width:1px
 }
 .gbar.real.editabile{cursor:grab}
 .gbar.real.editabile:active{cursor:grabbing}
-.gbar.real.scostata{border-color:var(--no)}
+/* scostamento senza motivo: rosso, sempre accompagnato dall'etichetta con icona */
+.gbar.real.scostata{background:var(--no-bg);border-color:var(--no)}
 .gbar.real.scostata > .fill{background:var(--no)}
-.gbar.real.giustificata{border-color:var(--warn)}
-.gbar.real.vuota{background:var(--surface-3);border-style:dashed;border-color:var(--mute-2)}
+.gbar.real.vuota{background:var(--surface-2);border-style:dashed;border-color:var(--mute-2)}
+.gbar.real.vuota > .fill{background:var(--mute-2)}
 
 /* percentuale: pastiglia bianca sopra la barra, oppure subito a destra se stretta */
 .gpct-bolla{
@@ -274,6 +281,7 @@ textarea{resize:vertical;min-height:84px;line-height:1.55}
 .gpct-bolla.fuori{background:var(--surface);border-color:var(--line-2);color:var(--ink-3)}
 .gpct-bolla.zero{color:var(--mute)}
 .gbar.real.scostata ~ .gpct-bolla{color:var(--no);border-color:var(--no-line)}
+.gbar.real:not(.scostata):not(.vuota) ~ .gpct-bolla{border-color:var(--reale-2)}
 
 .gmaniglia{position:absolute;top:0;bottom:0;width:8px;cursor:ew-resize;z-index:2}
 .gmaniglia.sx{left:0;border-radius:4px 0 0 4px}
@@ -443,7 +451,7 @@ table.data tr:hover td{background:var(--surface-2)}
 .foot{margin-top:28px;padding-top:16px;border-top:1px solid var(--line);font-size:.72rem;
   color:var(--mute-2);display:flex;flex-wrap:wrap;gap:6px 18px}
 
-@media (max-width:1180px){ .whoami{display:none} }
+@media (max-width:1460px){ .whoami{display:none} }
 @media (max-width:760px){
   .topbar-in{padding:8px 16px;gap:8px}
   .tabs{order:3;width:100%}
@@ -478,13 +486,13 @@ table.data tr:hover td{background:var(--surface-2)}
 /* riga con le due barre: contratto sottile sopra, reale spessa sotto */
 .gbody[data-modo="unico"] .grow,
 .gbody[data-modo="unico"] .glabel{min-height:46px}
-.gbody[data-modo="unico"] .gbar.contratto{top:10px;height:7px;border-radius:4px;background:var(--mute-2)}
+.gbody[data-modo="unico"] .gbar.contratto{top:10px;height:7px;border-radius:4px;background:var(--contratto)}
 .gbody[data-modo="unico"] .gbar.real{top:22px;height:16px}
 .gbody[data-modo="unico"] .gpct-bolla{top:23px}
 .gbody[data-modo="unico"] .gnota{top:23px;height:15px;font-size:.58rem;padding:0 5px}
 .gbody[data-modo="unico"] .grow[data-liv="0"] .gbar.contratto,
 .gbody[data-modo="unico"] .grow[data-liv="1"] .gbar.contratto,
-.gbody[data-modo="unico"] .grow[data-liv="2"] .gbar.contratto{top:12px;height:5px}
+.gbody[data-modo="unico"] .grow[data-liv="2"] .gbar.contratto{top:12px;height:5px;background:var(--contratto-2)}
 .gbody[data-modo="unico"] .grow[data-liv="0"] .gbar.real,
 .gbody[data-modo="unico"] .grow[data-liv="1"] .gbar.real,
 .gbody[data-modo="unico"] .grow[data-liv="2"] .gbar.real{top:24px;height:8px}

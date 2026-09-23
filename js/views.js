@@ -2,9 +2,9 @@
    Disegno delle sezioni. Ogni funzione riceve il contesto A di app.js.
    ══════════════════════════════════════════════════════════════════ */
 
-import { BY_ID, TRACCIATE, COSTO_TRACCIATO, STATI, FINE_CONTRATTO } from "./baseline.js";
+import { BY_ID, TRACCIATE, STATI, FINE_CONTRATTO } from "./baseline.js";
 import { riepilogo } from "./calcoli.js";
-import { el, clear, $, fmtD, fmtTs, nf0, eur, toast, errMsg, slug, estensione, MS, todayISO } from "./util.js";
+import { el, clear, $, fmtD, fmtTs, nf0, toast, errMsg, slug, estensione, MS, todayISO } from "./util.js";
 
 const ORDINE_STATI = ["nuova","presa","lavorazione","terminata"];
 
@@ -12,42 +12,6 @@ const ORDINE_STATI = ["nuova","presa","lavorazione","terminata"];
 
 export function disegnaKpi(A){
   const k = riepilogo(A.dati.fasi, A.oggi);
-  const box = $("kpis"); clear(box);
-
-  const kpi = (label, val, note, mod, barra, tacca) => {
-    const c = el("div", "kp" + (mod ? " is-" + mod : ""));
-    c.appendChild(el("div","k",label));
-    c.appendChild(el("div","v",val));
-    if(note) c.appendChild(el("div","n",note));
-    if(barra != null){
-      const m = el("div","meter");
-      const i = el("i");
-      i.style.width = Math.max(0, Math.min(100, barra)) + "%";
-      m.appendChild(i);
-      if(tacca != null){
-        const t = el("span","tick");
-        t.style.left = Math.max(0, Math.min(100, tacca)) + "%";
-        t.title = "Avanzamento previsto dal contratto alla data odierna";
-        m.appendChild(t);
-      }
-      c.appendChild(m);
-    }
-    box.appendChild(c);
-  };
-
-  const delta = k.avanz - k.atteso;
-  kpi("Avanzamento economico", nf0(k.avanz) + "%",
-      `${eur(k.valore)} su ${eur(COSTO_TRACCIATO)}`,
-      delta < -10 ? "no" : (delta < -3 ? "warn" : "ok"), k.avanz, k.atteso);
-  kpi("Scostamento sul previsto", (delta >= 0 ? "+" : "−") + nf0(Math.abs(delta)) + " pt",
-      `Previsto a oggi ${nf0(k.atteso)}%`,
-      delta < -10 ? "no" : (delta < -3 ? "warn" : "ok"));
-  kpi("Fine lavori stimata", fmtD(k.fineStimata),
-      k.slittamento > 0 ? `+${k.slittamento} gg sul termine contrattuale` : "Entro il termine contrattuale",
-      k.slittamento > 0 ? (k.slittamento > 10 ? "no" : "warn") : "ok");
-  kpi("Lavorazioni scostate", String(k.ritardi.length),
-      k.senzaGiust.length ? `${k.senzaGiust.length} senza motivo scritto` : "Tutte giustificate",
-      k.senzaGiust.length ? "no" : (k.ritardi.length ? "warn" : "ok"));
 
   const lu = $("lastUpd");
   if(k.ultimoAgg){

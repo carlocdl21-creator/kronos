@@ -39,12 +39,8 @@ export function calc(r, f = {}, oggi){
   // reale non coincide con quella di contratto, serve una giustificazione.
   const richiede = dI !== 0 || dF !== 0;
   const just = (f.giust || "").trim();
-
-  const peggiore = Math.max(dF, ritAvvio);
-  let sev = "ok";
-  if(peggiore > 5) sev = "crit";
-  else if(peggiore > 0) sev = "warn";
-  else if(av < 100 && scostAv <= -15) sev = "warn";
+  // un solo criterio, lo stesso che colora la barra
+  const sev = !richiede ? "ok" : (just ? "warn" : "crit");
 
   return {b:r, f, inizio, fine, av, effI, effF, dI, dF, atteso, scostAv, stato, ritAvvio, richiede, just, sev};
 }
