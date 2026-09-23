@@ -96,8 +96,9 @@ Chi si registra resta **in attesa**. L'amministratore vede il pulsante con il
 numero delle richieste nella testata di KRONOS e abilita o rifiuta con un
 tocco. Il codice dice da che parte stai, l'abilitazione dice se entri.
 
-I codici hanno **scadenza** (120 giorni) e **numero massimo di usi**; si
-revocano in una riga:
+I codici hanno **scadenza** (120 giorni) e un tetto di **registrazioni** —
+20 per la committenza, 30 per l'impresa: non è il numero di accessi, è quante
+persone possono registrarsi con quel codice. Si revocano in una riga:
 
 ```sql
 update public.codici_invito set attivo = false where codice = 'SA-…';

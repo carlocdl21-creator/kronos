@@ -11,9 +11,9 @@ update public.codici_invito set attivo = false where attivo;
 insert into public.codici_invito (codice, ruolo, etichetta, scade_il, usi_max)
 values
   (public.nuovo_codice('SA'),  'committenza',
-   'Stazione Appaltante e Direzione Lavori', current_date + 120, 8),
+   'Stazione Appaltante e Direzione Lavori', current_date + 120, 20),
   (public.nuovo_codice('IMP'), 'impresa',
-   'Impresa esecutrice e subappalti',        current_date + 120, 12);
+   'Impresa esecutrice e subappalti',        current_date + 120, 30);
 
 -- I nuovi codici da consegnare. I vecchi non funzionano più.
 select ruolo, codice, etichetta, scade_il

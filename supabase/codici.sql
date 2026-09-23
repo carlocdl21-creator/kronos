@@ -41,14 +41,14 @@ end $$;
 -- Scadenza e numero massimo di usi limitano il danno se un codice gira.
 insert into public.codici_invito (codice, ruolo, etichetta, scade_il, usi_max)
 select public.nuovo_codice('SA'), 'committenza',
-       'Stazione Appaltante e Direzione Lavori', current_date + 120, 8
+       'Stazione Appaltante e Direzione Lavori', current_date + 120, 20
  where not exists (select 1 from public.codici_invito
                     where ruolo = 'committenza' and attivo
                       and (scade_il is null or scade_il >= current_date));
 
 insert into public.codici_invito (codice, ruolo, etichetta, scade_il, usi_max)
 select public.nuovo_codice('IMP'), 'impresa',
-       'Impresa esecutrice e subappalti', current_date + 120, 12
+       'Impresa esecutrice e subappalti', current_date + 120, 30
  where not exists (select 1 from public.codici_invito
                     where ruolo = 'impresa' and attivo
                       and (scade_il is null or scade_il >= current_date));
