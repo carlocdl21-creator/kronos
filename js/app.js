@@ -352,17 +352,17 @@ $("mnSave").addEventListener("click", async () => {
   const data = $("mnData").value;
   const cognome = $("mnCognome").value.trim();
   const nome = $("mnNome").value.trim();
-  const faseId = $("mnFase").value;
+  const lavorazione = $("mnLavorazione").value.trim();
   if(!data){ toast("Indicare la giornata."); $("mnData").focus(); return; }
   if(!cognome && !nome){ toast("Indicare almeno il cognome dell'operaio."); $("mnCognome").focus(); return; }
-  if(!faseId){ toast("Indicare la lavorazione svolta."); $("mnFase").focus(); return; }
+  if(!lavorazione){ toast("Indicare la lavorazione svolta."); $("mnLavorazione").focus(); return; }
 
   const btn = $("mnSave"); btn.disabled = true;
   try{
     await A.store.aggiungiPresenza({
       data, nome, cognome,
       ore: Math.max(0, Number($("mnOre").value) || 0),
-      faseId,
+      lavorazione,
       impresa: $("mnImpresa").value.trim()
     });
     toast(`Presenza di ${[cognome, nome].filter(Boolean).join(" ")} registrata.`);
@@ -419,7 +419,7 @@ $("mnCsv").addEventListener("click", () => {
       String(a.data||"").localeCompare(String(b.data||"")) ||
       String(a.cognome||"").localeCompare(String(b.cognome||"")))){
     rows.push([fmtD(r.data), r.cognome||"", r.nome||"", r.ore ?? 0,
-               BY_ID[r.faseId]?.nome || "", r.impresa||""]);
+               r.lavorazione||"", r.impresa||""]);
   }
   scaricaTesto(csv(rows), "presenze-cantiere-3613.csv");
 });

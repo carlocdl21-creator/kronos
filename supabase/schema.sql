@@ -87,7 +87,7 @@ create table if not exists public.presenze (
   nome         text,
   cognome      text,
   ore          numeric(4,1) not null default 0 check (ore >= 0 and ore <= 24),
-  fase_id      text,
+  lavorazione  text,
   impresa      text,
   creato_da    uuid references public.profili(id),
   creato_il    timestamptz not null default now()

@@ -101,7 +101,7 @@ export function creaStoreSupabase(){
         })),
         presenze: (pr.data||[]).map(r => ({
           id:r.id, data:r.data, nome:r.nome, cognome:r.cognome, ore:Number(r.ore)||0,
-          faseId:r.fase_id, impresa:r.impresa, autore:nome(r.creato_da), creatoIl:r.creato_il
+          lavorazione:r.lavorazione, impresa:r.impresa, autore:nome(r.creato_da), creatoIl:r.creato_il
         })),
         richieste: (rq.data||[]).map(r => ({
           id:r.id, titolo:r.titolo, testo:r.testo, stato:r.stato, faseId:r.fase_id,
@@ -181,7 +181,7 @@ export function creaStoreSupabase(){
     async aggiungiPresenza(p){
       const { error } = await sb.from("presenze").insert({
         data:p.data, nome:p.nome || null, cognome:p.cognome || null, ore:p.ore,
-        fase_id:p.faseId || null, impresa:p.impresa || null, creato_da:this.utente.id
+        lavorazione:p.lavorazione || null, impresa:p.impresa || null, creato_da:this.utente.id
       });
       if(error) throw error;
     },

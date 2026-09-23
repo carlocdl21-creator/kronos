@@ -293,7 +293,7 @@ export function disegnaPresenze(A){
     const nome = [r.cognome, r.nome].filter(Boolean).join(" ") || "—";
     tr.appendChild(el("td","forte", nome));
     tr.appendChild(el("td",null, `${nfOre(Number(r.ore) || 0)} h`));
-    tr.appendChild(el("td",null, BY_ID[r.faseId]?.nome || "—"));
+    tr.appendChild(el("td",null, r.lavorazione || "—"));
     tr.appendChild(el("td",null, r.impresa || "—"));
     const tdX = el("td");
     if(A.isImpresa()){
@@ -489,7 +489,7 @@ function pillStato(s){
 /* ══════════════════════════ SELETTORI FASE ══════════════════════════ */
 
 export function riempiSelettoriFase(A){
-  for(const [id, conVuoto] of [["mnFase",true],["rqFase",true]]){
+  for(const [id, conVuoto] of [["rqFase",true]]){
     const sel = $(id); if(!sel) continue;
     const prec = sel.value;
     clear(sel);
