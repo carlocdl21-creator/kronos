@@ -350,19 +350,25 @@ function collegaDropzone(zona, input, azione){
 
 $("mnSave").addEventListener("click", async () => {
   const data = $("mnData").value;
-  if(!data){ toast("Indicare la giornata."); return; }
+  const cognome = $("mnCognome").value.trim();
+  const nome = $("mnNome").value.trim();
+  const faseId = $("mnFase").value;
+  if(!data){ toast("Indicare la giornata."); $("mnData").focus(); return; }
+  if(!cognome && !nome){ toast("Indicare almeno il cognome dell'operaio."); $("mnCognome").focus(); return; }
+  if(!faseId){ toast("Indicare la lavorazione svolta."); $("mnFase").focus(); return; }
+
   const btn = $("mnSave"); btn.disabled = true;
   try{
     await A.store.aggiungiPresenza({
-      data,
-      impresa: $("mnImpresa").value.trim(),
-      nOperai: Math.max(0, Number($("mnNum").value) || 0),
+      data, nome, cognome,
       ore: Math.max(0, Number($("mnOre").value) || 0),
-      faseId: $("mnFase").value,
-      nominativi: $("mnNomi").value.trim()
+      faseId,
+      impresa: $("mnImpresa").value.trim()
     });
-    toast("Giornata registrata.");
-    $("mnNomi").value = "";
+    toast(`Presenza di ${[cognome, nome].filter(Boolean).join(" ")} registrata.`);
+    // giornata, lavorazione e impresa restano: si passa all'operaio successivo
+    $("mnNome").value = ""; $("mnCognome").value = "";
+    $("mnCognome").focus();
     await ricarica();
   }catch(e){ toast(errMsg(e)); }
   finally{ btn.disabled = false; }
@@ -408,10 +414,12 @@ $("expCsv").addEventListener("click", () => {
 });
 
 $("mnCsv").addEventListener("click", () => {
-  const rows = [["Giornata","Impresa/squadra","N. operai","Ore","Lavorazione","Nominativi"]];
-  for(const r of A.dati.presenze.slice().sort((a,b) => String(a.data||"").localeCompare(String(b.data||"")))){
-    rows.push([fmtD(r.data), r.impresa||"", r.nOperai ?? 0, r.ore ?? 0,
-               BY_ID[r.faseId]?.nome || "", r.nominativi||""]);
+  const rows = [["Giornata","Cognome","Nome","Ore","Lavorazione","Impresa"]];
+  for(const r of A.dati.presenze.slice().sort((a,b) =>
+      String(a.data||"").localeCompare(String(b.data||"")) ||
+      String(a.cognome||"").localeCompare(String(b.cognome||"")))){
+    rows.push([fmtD(r.data), r.cognome||"", r.nome||"", r.ore ?? 0,
+               BY_ID[r.faseId]?.nome || "", r.impresa||""]);
   }
   scaricaTesto(csv(rows), "presenze-cantiere-3613.csv");
 });
@@ -477,6 +485,7 @@ for(const [tinta, icona, titolo, valore] of [
   $("stDati").appendChild(c);
 }
 $("mnData").value = A.oggi;
+$("mnImpresa").value = "";
 try{
   const t = localStorage.getItem("kronos.tab");
   selezionaTab(t && ["crono","foto","ddt","mano","req"].includes(t) ? t : "crono");

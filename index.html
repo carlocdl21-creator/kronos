@@ -205,17 +205,19 @@
       </div>
 
       <div class="card impresa-only" hidden>
-        <div class="card-hd"><h2>Registra una giornata</h2></div>
+        <div class="card-hd"><h2>Registra una presenza</h2>
+          <span class="sub">Una riga per ogni operaio presente in cantiere: la giornata, la lavorazione e l'impresa restano compilate per inserire l'operaio successivo.</span>
+        </div>
         <div class="card-bd">
           <div class="formgrid">
             <label class="field"><span>Giornata</span><input type="date" id="mnData"></label>
-            <label class="field"><span>Impresa / squadra</span><input type="text" id="mnImpresa" placeholder="Es. Impresa esecutrice"></label>
-            <label class="field"><span>N. operai</span><input type="number" id="mnNum" min="0" max="200" step="1" value="0"></label>
-            <label class="field"><span>Ore lavorate</span><input type="number" id="mnOre" min="0" max="2000" step="0.5" value="0"></label>
+            <label class="field"><span>Nome</span><input type="text" id="mnNome" placeholder="Mario"></label>
+            <label class="field"><span>Cognome</span><input type="text" id="mnCognome" placeholder="Rossi"></label>
+            <label class="field"><span>Ore</span><input type="number" id="mnOre" min="0" max="24" step="0.5" value="8"></label>
             <label class="field"><span>Lavorazione</span><select id="mnFase"></select></label>
-            <label class="field" style="grid-column:1/-1"><span>Nominativi</span><input type="text" id="mnNomi" placeholder="Cognome Nome, Cognome Nome…"></label>
+            <label class="field"><span>Impresa</span><input type="text" id="mnImpresa" placeholder="Impresa esecutrice"></label>
           </div>
-          <div class="row-end"><button class="btn primary push" id="mnSave"><i class="bi bi-plus-lg"></i> Registra giornata</button></div>
+          <div class="row-end"><button class="btn primary push" id="mnSave"><i class="bi bi-person-plus"></i> Aggiungi presenza</button></div>
         </div>
       </div>
 
@@ -223,7 +225,7 @@
         <div class="card-hd"><h2>Giornale di cantiere</h2><span class="sub" id="mnSub">—</span></div>
         <div class="card-bd flush tscroll">
           <table class="data">
-            <thead><tr><th>Giornata</th><th>Impresa / squadra</th><th>Operai</th><th>Ore</th><th>Lavorazione</th><th>Nominativi</th><th></th></tr></thead>
+            <thead><tr><th>Giornata</th><th>Cognome e nome</th><th>Ore</th><th>Lavorazione</th><th>Impresa</th><th></th></tr></thead>
             <tbody id="tbMano"></tbody>
           </table>
         </div>

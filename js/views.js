@@ -4,7 +4,7 @@
 
 import { BY_ID, TRACCIATE, STATI, FINE_CONTRATTO } from "./baseline.js";
 import { riepilogo } from "./calcoli.js";
-import { el, clear, $, fmtD, fmtTs, nf0, toast, errMsg, slug, estensione, MS, todayISO } from "./util.js";
+import { el, clear, $, fmtD, fmtTs, nf0, nfOre, toast, errMsg, slug, estensione, MS, todayISO } from "./util.js";
 
 const ORDINE_STATI = ["nuova","presa","lavorazione","terminata"];
 
@@ -261,40 +261,48 @@ export function disegnaPresenze(A){
   const tb = $("tbMano"); clear(tb);
   $("cnt-mano").textContent = A.dati.presenze.length;
 
-  const lista = A.dati.presenze.slice().sort((a,b) => String(b.data||"").localeCompare(String(a.data||"")));
+  const lista = A.dati.presenze.slice().sort((a,b) => {
+    const d = String(b.data||"").localeCompare(String(a.data||""));
+    return d !== 0 ? d : String(a.cognome||"").localeCompare(String(b.cognome||""));
+  });
   const ore = lista.reduce((a,r) => a + (Number(r.ore) || 0), 0);
+  const giornate = new Set(lista.map(r => r.data)).size;
   $("mnSub").textContent = lista.length
-    ? `${lista.length} giornate registrate · ${nf0(ore)} ore complessive`
-    : "Nessuna giornata registrata";
+    ? `${lista.length} ${lista.length === 1 ? "presenza" : "presenze"} su ` +
+      `${giornate} ${giornate === 1 ? "giornata" : "giornate"} · ${nfOre(ore)} ore complessive`
+    : "Nessuna presenza registrata";
 
   if(!lista.length){
     const tr = el("tr"), td = el("td");
-    td.colSpan = 7;
+    td.colSpan = 6;
     const e = el("div","empty");
     e.appendChild(el("i","bi bi-people"));
     e.appendChild(el("b", null, "Giornale vuoto"));
     e.appendChild(el("span", null, A.isImpresa()
-      ? "Registra gli operai presenti in cantiere giorno per giorno."
+      ? "Registra gli operai presenti in cantiere, uno per riga."
       : "L'impresa non ha ancora registrato le presenze giornaliere."));
     td.appendChild(e); tr.appendChild(td); tb.appendChild(tr);
     return;
   }
 
+  let giornoPrec = null;
   for(const r of lista){
     const tr = el("tr");
+    if(r.data !== giornoPrec){ tr.classList.add("nuovo-giorno"); giornoPrec = r.data; }
     tr.appendChild(el("td",null, fmtD(r.data)));
-    tr.appendChild(el("td",null, r.impresa || "—"));
-    tr.appendChild(el("td",null, String(r.nOperai ?? 0)));
-    tr.appendChild(el("td",null, nf0(Number(r.ore) || 0)));
+    const nome = [r.cognome, r.nome].filter(Boolean).join(" ") || "—";
+    tr.appendChild(el("td","forte", nome));
+    tr.appendChild(el("td",null, `${nfOre(Number(r.ore) || 0)} h`));
     tr.appendChild(el("td",null, BY_ID[r.faseId]?.nome || "—"));
-    tr.appendChild(el("td",null, r.nominativi || "—"));
+    tr.appendChild(el("td",null, r.impresa || "—"));
     const tdX = el("td");
     if(A.isImpresa()){
       const x = el("button","btn sm danger");
       x.appendChild(el("i","bi bi-trash"));
+      x.title = "Elimina la presenza";
       x.addEventListener("click", async () => {
-        if(!confirm(`Eliminare la registrazione del ${fmtD(r.data)}?`)) return;
-        try{ await A.store.eliminaPresenza(r); toast("Registrazione eliminata."); await A.ricarica(); }
+        if(!confirm(`Eliminare la presenza di ${nome} del ${fmtD(r.data)}?`)) return;
+        try{ await A.store.eliminaPresenza(r); toast("Presenza eliminata."); await A.ricarica(); }
         catch(e){ toast(errMsg(e)); }
       });
       tdX.appendChild(x);

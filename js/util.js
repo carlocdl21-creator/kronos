@@ -22,6 +22,9 @@ const NF2 = new Intl.NumberFormat("it-IT", {minimumFractionDigits:2, maximumFrac
 const NF0 = new Intl.NumberFormat("it-IT", {maximumFractionDigits:0});
 export const nf2 = v => NF2.format(v);
 export const nf0 = v => NF0.format(v);
+/** Ore: mezz'ore comprese, senza decimali inutili (8, 6,5). */
+const NFORE = new Intl.NumberFormat("it-IT", {maximumFractionDigits:1});
+export const nfOre = v => NFORE.format(v);
 export const eur = v => "€ " + NF2.format(v);
 
 export function el(tag, cls, txt){

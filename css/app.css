@@ -510,3 +510,8 @@ table.data tr:hover td{background:var(--surface-2)}
 .gbody[data-modo="unico"] .grow[data-liv="0"] .gbar.real,
 .gbody[data-modo="unico"] .grow[data-liv="1"] .gbar.real,
 .gbody[data-modo="unico"] .grow[data-liv="2"] .gbar.real{top:24px;height:8px}
+
+/* giornale di cantiere: una riga per operaio, con lo stacco fra le giornate */
+table.data tr.nuovo-giorno td{border-top:2px solid var(--line-2)}
+table.data tr.nuovo-giorno:first-child td{border-top:none}
+table.data td.forte{font-weight:600;color:var(--ink-2)}

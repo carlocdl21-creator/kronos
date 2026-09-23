@@ -49,6 +49,7 @@ js/store-demo.js        archivio dimostrativo locale (senza server)
 js/util.js              date, numeri, CSV, messaggi
 supabase/schema.sql     tabelle, ruoli, policy, bucket dei file
 supabase/utenti.sql     assegnazione dei ruoli alle utenze
+dev-server.py           server locale di prova, senza cache
 ```
 
 Nessuna dipendenza da installare e nessuna compilazione: sono file statici,
@@ -97,10 +98,14 @@ Per pubblicarlo su `cantiere.get-hanzo.com`:
 I moduli ES non funzionano aprendo il file con doppio clic: serve un server.
 
 ```bash
-cd KRONOS && python3 -m http.server 8080
+cd ~/Desktop/KRONOS && python3 dev-server.py
 ```
 
-Poi aprire <http://localhost:8080>.
+Poi aprire <http://localhost:8099>.
+
+`dev-server.py` è `http.server` con le intestazioni che impediscono al
+browser di tenere in cache i moduli: senza, le modifiche non si vedono
+finché non si ricarica tenendo premuto Shift.
 
 ---
 

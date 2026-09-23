@@ -80,18 +80,19 @@ create table if not exists public.ddt (
 create index if not exists ddt_data_idx on public.ddt (creato_il desc);
 
 -- -------------------------------------------------------------- presenze --
+-- Una riga per ogni operaio presente in una giornata.
 create table if not exists public.presenze (
   id           uuid primary key default gen_random_uuid(),
   data         date not null,
-  impresa      text,
-  n_operai     int not null default 0 check (n_operai >= 0),
-  ore          numeric(6,1) not null default 0 check (ore >= 0),
+  nome         text,
+  cognome      text,
+  ore          numeric(4,1) not null default 0 check (ore >= 0 and ore <= 24),
   fase_id      text,
-  nominativi   text,
+  impresa      text,
   creato_da    uuid references public.profili(id),
   creato_il    timestamptz not null default now()
 );
-create index if not exists presenze_data_idx on public.presenze (data desc);
+create index if not exists presenze_data_idx on public.presenze (data desc, cognome);
 
 -- -------------------------------------------------------------- richieste --
 create table if not exists public.richieste (
