@@ -11,7 +11,7 @@ delle lavorazioni, bolle di consegna dei materiali, elenco degli operai presenti
 nelle singole giornate e registro delle richieste.
 
 **Commessa di riferimento:** 3613 — Costruzione Nuovo Asilo Nido Comunale,
-Comune di Marcaria (MN), CUP E75E26000030004.
+Comune di Marcaria (MN), CIG BC7A0B7386.
 **Baseline:** elaborato `3613_E_GE_1016 — Cronoprogramma lavori`, rev. 00 del
 13/07/2026 (121 giorni naturali, 01/08/2026 → 29/11/2026, € 771.395,62).
 
@@ -118,7 +118,7 @@ perché nulla viene condiviso fra gli utenti.
 
 **Cambio di commessa.** Sostituire le 31 righe di `js/baseline.js` con la WBS
 del nuovo cronoprogramma e aggiornare la testata in `index.html`
-(oggetto, stazione appaltante, CUP, importo, termini). Gli `id` delle righe
+(oggetto, stazione appaltante, CIG, termini). Gli `id` delle righe
 sono le chiavi della tabella `fasi`: cambiandoli si azzerano gli avanzamenti.
 
 **Le due viste del cronoprogramma.** “Sovrapposto” mette nella stessa riga la

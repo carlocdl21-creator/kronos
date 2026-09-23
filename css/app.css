@@ -193,7 +193,7 @@ textarea{resize:vertical;min-height:84px;line-height:1.55}
 .st-chip i{font-size:.95rem}
 /* una tinta per tipo di dato, così si riconoscono a colpo d'occhio */
 .st-chip.c-luogo {background:#f5f3ff;border-color:#ddd6fe;color:#5b21b6}
-.st-chip.c-cup   {background:#f0fdfa;border-color:#99f6e4;color:#0f766e}
+.st-chip.c-cig   {background:#f0fdfa;border-color:#99f6e4;color:#0f766e}
 .st-chip.c-avvio {background:var(--contratto-bg);border-color:#bfdbfe;color:#1d4ed8}
 .st-chip.c-durata{background:#fff7ed;border-color:#fed7aa;color:#c2410c}
 .st-chip i{opacity:.85}

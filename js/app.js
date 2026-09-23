@@ -466,7 +466,7 @@ try{
 }catch(e){}
 for(const [tinta, icona, titolo, valore] of [
   ["c-luogo",  "bi-geo-alt-fill",     "Luogo dei lavori",    "Marcaria (MN)"],
-  ["c-cup",    "bi-hash",             "CUP",                 "E75E26000030004"],
+  ["c-cig",    "bi-hash",             "CIG",                 "BC7A0B7386"],
   ["c-avvio",  "bi-flag-fill",        "Consegna dei lavori", fmtD(INIZIO_CONTRATTO)],
   ["c-durata", "bi-hourglass-split",  "Durata contrattuale", "121 giorni"]
 ]){
