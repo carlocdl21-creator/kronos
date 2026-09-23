@@ -35,7 +35,9 @@ export function calc(r, f = {}, oggi){
               : av > 0 ? "corso"
               : (diffDays(oggi, r.i) >= 0 ? "attesa" : "futura");
 
-  const richiede = dI !== 0 || dF !== 0 || ritAvvio > 0 || (stato !== "completata" && scostAv <= -15);
+  // Lo scostamento è la differenza visibile fra le due barre: se la barra
+  // reale non coincide con quella di contratto, serve una giustificazione.
+  const richiede = dI !== 0 || dF !== 0;
   const just = (f.giust || "").trim();
 
   const peggiore = Math.max(dF, ritAvvio);
@@ -45,6 +47,18 @@ export function calc(r, f = {}, oggi){
   else if(av < 100 && scostAv <= -15) sev = "warn";
 
   return {b:r, f, inizio, fine, av, effI, effF, dI, dF, atteso, scostAv, stato, ritAvvio, richiede, just, sev};
+}
+
+/** Le attività elementari tracciate che stanno sotto una riga di gruppo. */
+export function foglieDi(r){
+  const da = BASE.indexOf(r);
+  if(da < 0) return [];
+  const out = [];
+  for(let k = da + 1; k < BASE.length; k++){
+    if(BASE[k].liv <= r.liv) break;
+    if(BASE[k].foglia && !BASE[k].continua) out.push(BASE[k]);
+  }
+  return out;
 }
 
 /** Tutte le attività tracciate, già confrontate. */

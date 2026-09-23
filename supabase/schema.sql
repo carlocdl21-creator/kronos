@@ -68,20 +68,16 @@ create table if not exists public.foto (
 create index if not exists foto_fase_idx on public.foto (fase_id);
 
 -- ------------------------------------------------------------------- ddt --
+-- Archivio dei documenti di trasporto: soltanto il file caricato.
 create table if not exists public.ddt (
   id           uuid primary key default gen_random_uuid(),
-  numero       text not null,
-  data         date not null,
-  fornitore    text,
-  descrizione  text,
-  fase_id      text,
-  path         text,
+  path         text not null,
   nome_file    text,
   tipo         text,
   creato_da    uuid references public.profili(id),
   creato_il    timestamptz not null default now()
 );
-create index if not exists ddt_data_idx on public.ddt (data desc);
+create index if not exists ddt_data_idx on public.ddt (creato_il desc);
 
 -- -------------------------------------------------------------- presenze --
 create table if not exists public.presenze (

@@ -67,14 +67,7 @@ function semina(){
         giust:"", giustData:null, aggiornatoIl:"2026-09-23T06:52:00.000Z", autore:"Impresa esecutrice"}
     },
     foto: [],
-    ddt: [
-      {id:"ddt1487", numero:"2026/1487", data:"2026-09-07", fornitore:"Fornitore pannelli XLAM",
-       descrizione:"Pannelli XLAM – 1° carico (pareti piano terra)", faseId:"xlam",
-       path:null, nomeFile:null, autore:"Impresa esecutrice", creatoIl:"2026-09-07T09:20:00.000Z"},
-      {id:"ddt1512", numero:"2026/1512", data:"2026-09-11", fornitore:"Fornitore pannelli XLAM",
-       descrizione:"Pannelli XLAM – 2° carico (solaio di copertura) e ferramenta di collegamento", faseId:"xlam",
-       path:null, nomeFile:null, autore:"Impresa esecutrice", creatoIl:"2026-09-11T08:15:00.000Z"}
-    ],
+    ddt: [],
     presenze: [
       {id:"p1", data:"2026-09-21", impresa:"Impresa esecutrice – squadra carpenteria", nOperai:7, ore:56,
        faseId:"xlam", nominativi:"Rossi M., Bianchi L., Ferrari A., Conti P., Moretti S., Rizzo D., Greco V.",
@@ -185,11 +178,10 @@ export function creaStoreDemo(){
     },
     async blobFile(path){ return path ? await getFile(path) : null; },
 
-    async aggiungiDdt(meta, file){
-      const id = uid();
-      let path = null;
-      if(file){ path = "doc/" + id; await putFile(path, file); }
-      stato.ddt.push({id, ...meta, path, nomeFile:file?.name || null, tipo:file?.type || null,
+    async aggiungiDdt(file){
+      const id = uid(), path = "doc/" + id;
+      await putFile(path, file);
+      stato.ddt.push({id, path, nomeFile:file.name, tipo:file.type,
         autore:this.utente?.nome || "—", creatoIl:new Date().toISOString()});
       notifica();
     },

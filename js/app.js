@@ -1,21 +1,20 @@
-/* ==========================================================================
-   KRONOS — avvio dell'applicativo, autenticazione e collegamenti fra le parti.
-   ========================================================================== */
+/* ══════════════════════════════════════════════════════════════════
+   KRONOS by HANZO — avvio, accesso e collegamenti fra le parti.
+   ══════════════════════════════════════════════════════════════════ */
 
 import { CONFIG, isConfigurato } from "./config.js";
-import { BASE, BY_ID, TRACCIATE, FINE_CONTRATTO } from "./baseline.js";
+import { BASE, BY_ID } from "./baseline.js";
 import { calc } from "./calcoli.js";
-import { disegnaGantt } from "./gantt.js";
+import { disegnaGantt, scala } from "./gantt.js";
 import {
-  disegnaKpi, disegnaTabella, disegnaFoto, disegnaDdt,
-  disegnaPresenze, disegnaRichieste, riempiSelettoriFase
+  disegnaKpi, disegnaFoto, disegnaDdt, disegnaPresenze,
+  disegnaRichieste, riempiSelettoriFase
 } from "./views.js";
 import {
-  $, el, clear, toast, errMsg, fmtD, nf2, todayISO,
-  csv, scaricaTesto, scaricaBlob
+  $, el, clear, toast, errMsg, fmtD, nf2, todayISO, csv, scaricaTesto, scaricaBlob
 } from "./util.js";
 
-/* ------------------------------ contesto ------------------------------ */
+/* ───────────────────────────── contesto ───────────────────────────── */
 
 const A = {
   store: null,
@@ -23,14 +22,16 @@ const A = {
   oggi: todayISO(),
   tab: "crono",
   px: 8,
-  fotoFiltro: "",
+  faseAperta: null,
   reqFiltro: "",
+  rqRisposta: null,
+  rqApertI: new Set(),
   ruolo(){ return A.store?.utente?.ruolo || "committenza"; },
   isImpresa(){ return A.ruolo() === "impresa"; },
-  ricarica, render, salvaFase, scaricaFile
+  ricarica, render, scaricaFile
 };
 
-/* ------------------------------ avvio ------------------------------ */
+/* ───────────────────────────── avvio ───────────────────────────── */
 
 async function avvia(){
   if(isConfigurato()){
@@ -61,7 +62,6 @@ async function entraNellApp(){
   try{ await ricarica(); }
   catch(e){ toast(errMsg(e)); }
 
-  // aggiornamenti in tempo reale + riallineamento periodico di sicurezza
   A.store.onCambio(() => { ricarica().catch(() => {}); });
   clearInterval(A._poll);
   A._poll = setInterval(() => { if(!document.hidden) ricarica().catch(() => {}); },
@@ -74,7 +74,7 @@ function mostraErroreLogin(msg){
   box.hidden = false;
 }
 
-/* ------------------------------ accesso ------------------------------ */
+/* ───────────────────────────── accesso ───────────────────────────── */
 
 $("loginForm").addEventListener("submit", async ev => {
   ev.preventDefault();
@@ -110,44 +110,48 @@ $("btnRefresh").addEventListener("click", async () => {
   catch(e){ toast(errMsg(e)); }
 });
 
-/* ------------------------------ dati ------------------------------ */
+/* ───────────────────────────── dati e disegno ───────────────────────────── */
 
 async function ricarica(){
   A.dati = await A.store.carica();
   render();
 }
 
-let rafT = null;
+let attesa = null;
 function render(){
-  if(rafT) return;
-  // setTimeout e non requestAnimationFrame: una scheda in secondo piano
-  // sospende i frame e la pagina resterebbe vuota fino al ritorno a fuoco.
-  rafT = setTimeout(() => {
-    rafT = null;
-    // il ridisegno non deve far perdere il campo che si sta compilando
+  if(attesa) return;
+  attesa = setTimeout(() => {
+    attesa = null;
     const ae = document.activeElement;
     const keep = (ae && ae.id && /^fase-/.test(ae.id))
-      ? {id:ae.id, v:ae.value, s:ae.selectionStart, e:ae.selectionEnd} : null;
+      ? {id:ae.id, v:ae.value} : null;
 
     applicaRuolo();
     disegnaKpi(A);
-    disegnaTabella(A);
     riempiSelettoriFase(A);
     disegnaFoto(A);
     disegnaDdt(A);
     disegnaPresenze(A);
     disegnaRichieste(A);
-    if(A.tab === "crono") disegnaGantt($("gbody"), {fasi:A.dati.fasi, oggi:A.oggi, px:A.px});
+    if(A.tab === "crono") disegnaCrono();
 
     if(keep){
       const n = $(keep.id);
-      if(n){
-        if(keep.v != null && n.value !== keep.v) n.value = keep.v;
-        n.focus();
-        try{ if(keep.s != null) n.setSelectionRange(keep.s, keep.e); }catch(e){}
-      }
+      if(n){ if(keep.v != null && n.value !== keep.v) n.value = keep.v; n.focus(); }
     }
   }, 0);
+}
+
+function disegnaCrono(){
+  const sc = scala(A.dati.fasi, A.oggi);
+  const comune = { fasi:A.dati.fasi, oggi:A.oggi, px:A.px, sc };
+  disegnaGantt($("gbody-base"),  {...comune, modo:"base"});
+  disegnaGantt($("gbody-reale"), {...comune, modo:"reale",
+    editabile: A.isImpresa(),
+    onDate: cambiaDate,
+    onAvanz: (id, v) => salvaFase(id, {avanz:v}),
+    onNota: apriNota
+  });
 }
 
 function applicaRuolo(){
@@ -155,30 +159,38 @@ function applicaRuolo(){
   document.querySelectorAll(".impresa-only").forEach(n => { n.hidden = !imp; });
   document.querySelectorAll(".sa-only").forEach(n => { n.hidden = imp; });
 
-  $("roleChip").className = "role-chip " + (imp ? "impresa" : "sa");
-  $("roleName").textContent = imp ? "Impresa esecutrice" : "Stazione Appaltante / Direzione Lavori";
-  $("rolePerm").textContent = imp
-    ? "Aggiorna il cronoprogramma, carica ed elimina foto e documenti, registra le presenze e gestisce lo stato delle richieste."
-    : "Consultazione e download di cronoprogramma, foto, bolle e presenze; può inoltrare richieste all'impresa.";
-  $("whoami").textContent = A.store?.utente ? `${A.store.utente.nome} · ${A.store.utente.email}` : "";
+  const chip = $("roleChip");
+  chip.className = "role-chip " + (imp ? "impresa" : "sa");
+  $("roleName").textContent = imp ? "Impresa esecutrice" : "Stazione Appaltante / DL";
+  const u = A.store?.utente;
+  const w = $("whoami"); clear(w);
+  if(u){
+    w.appendChild(el("b", null, u.nome));
+    w.appendChild(el("span", null, u.email || ""));
+  }
   $("footRole").textContent = imp
     ? "Vista impresa esecutrice"
-    : "Vista Stazione Appaltante / Direzione Lavori (sola lettura)";
+    : "Vista Stazione Appaltante / Direzione Lavori — sola lettura";
 }
 
-/* --------------------------- cronoprogramma --------------------------- */
+/* ───────────────────────────── cronoprogramma ───────────────────────────── */
 
-async function salvaFase(id, campo, valore){
+function cambiaDate(id, inizio, fine){
+  salvaFase(id, {inizio, fine});
+}
+
+async function salvaFase(id, patch){
+  if(!A.isImpresa()){ toast("Solo l'impresa esecutrice può modificare il cronoprogramma."); return; }
   const cur = A.dati.fasi[id] || {};
   const body = {
     inizio: cur.inizio || null,
     fine: cur.fine || null,
     avanz: typeof cur.avanz === "number" ? cur.avanz : 0,
     giust: cur.giust || "",
-    giustData: cur.giustData || null
+    giustData: cur.giustData || null,
+    ...patch
   };
-  body[campo] = valore;
-  if(campo === "giust") body.giustData = valore ? new Date().toISOString() : null;
+  if("giust" in patch) body.giustData = patch.giust ? new Date().toISOString() : null;
   if(body.inizio && body.fine && body.fine < body.inizio){
     toast("La data di fine non può precedere quella di inizio.");
     render();
@@ -188,7 +200,6 @@ async function salvaFase(id, campo, valore){
   render();
   try{
     await A.store.salvaFase(id, body);
-    toast("Avanzamento registrato.");
     await ricarica();
   }catch(e){
     toast(errMsg(e));
@@ -196,7 +207,62 @@ async function salvaFase(id, campo, valore){
   }
 }
 
-/* ------------------------------ file ------------------------------ */
+/** Finestra per scrivere il motivo dello scostamento. */
+function apriNota(r){
+  const f = A.dati.fasi[r.id] || {};
+  const c = calc(r, f, A.oggi);
+
+  const back = el("div","modale");
+  const box = el("div","modale-box");
+  box.appendChild(el("h3", null, "Motivo dello scostamento"));
+  box.appendChild(el("div","ctx",
+    `${r.nome} — contratto ${fmtD(r.i)} → ${fmtD(r.f)} (${r.durata} gg), ` +
+    `reale ${fmtD(c.effI)} → ${fmtD(c.effF)}. ` +
+    `Scostamento: ${c.dI >= 0 ? "+" : ""}${c.dI} gg sull'avvio, ${c.dF >= 0 ? "+" : ""}${c.dF} gg sul termine.`));
+
+  const lab = el("label","field");
+  lab.appendChild(el("span", null, "Motivo e azione correttiva"));
+  const ta = document.createElement("textarea");
+  ta.value = (f.giust || "");
+  ta.placeholder = "Es. consegna materiale posticipata dal fornitore; recupero con turno aggiuntivo del sabato.";
+  ta.style.minHeight = "120px";
+  lab.appendChild(ta);
+  box.appendChild(lab);
+
+  const riga = el("div","row-end");
+  const chiudi = () => { back.remove(); document.removeEventListener("keydown", onk); };
+  const onk = ev => { if(ev.key === "Escape") chiudi(); };
+
+  if((f.giust || "").trim()){
+    const togli = el("button","btn sm danger","Cancella motivo");
+    togli.addEventListener("click", () => { chiudi(); salvaFase(r.id, {giust:""}); });
+    riga.appendChild(togli);
+  }
+  const annulla = el("button","btn push","Annulla");
+  annulla.addEventListener("click", chiudi);
+  riga.appendChild(annulla);
+
+  const salva = el("button","btn primary");
+  salva.appendChild(el("i","bi bi-check-lg"));
+  salva.appendChild(el("span", null, "Salva motivo"));
+  salva.addEventListener("click", () => {
+    const t = ta.value.trim();
+    if(!t){ toast("Scrivere il motivo dello scostamento."); ta.focus(); return; }
+    chiudi();
+    salvaFase(r.id, {giust:t});
+    toast("Motivo registrato: lo scostamento risulta giustificato.");
+  });
+  riga.appendChild(salva);
+  box.appendChild(riga);
+
+  back.appendChild(box);
+  back.addEventListener("click", ev => { if(ev.target === back) chiudi(); });
+  document.addEventListener("keydown", onk);
+  document.body.appendChild(back);
+  ta.focus();
+}
+
+/* ───────────────────────────── file ───────────────────────────── */
 
 async function scaricaFile(path, nome){
   try{
@@ -206,68 +272,56 @@ async function scaricaFile(path, nome){
   }catch(e){ toast(errMsg(e)); }
 }
 
-/* ------------------------------ foto ------------------------------ */
+/* ───────────────────────────── foto ───────────────────────────── */
 
 async function caricaFoto(files){
   if(!A.isImpresa()){ toast("Solo l'impresa esecutrice può caricare le foto."); return; }
+  if(!A.faseAperta){ toast("Aprire prima la cartella della fase."); return; }
   const arr = Array.from(files || []);
   if(!arr.length) return;
-  const faseId = $("fotoFase").value;
-  const didascalia = $("fotoCap").value.trim();
-  toast(`Caricamento di ${arr.length} file in corso…`);
+  toast(`Caricamento di ${arr.length} file…`);
   let ok = 0;
   for(const file of arr){
-    try{ await A.store.caricaFoto(file, {faseId, didascalia}); ok++; }
+    try{ await A.store.caricaFoto(file, {faseId:A.faseAperta, didascalia:""}); ok++; }
     catch(e){ toast(errMsg(e)); }
   }
   if(ok){
-    toast(`${ok} foto caricate nella fase “${BY_ID[faseId]?.nome || "—"}”.`);
-    $("fotoCap").value = "";
+    toast(`${ok} foto caricate in “${BY_ID[A.faseAperta]?.nome || "—"}”.`);
     await ricarica();
   }
 }
 
-$("fotoBtn").addEventListener("click", () => $("fotoFile").click());
-$("fotoFile").addEventListener("change", ev => { caricaFoto(ev.target.files); ev.target.value = ""; });
-$("fotoFilter").addEventListener("change", ev => { A.fotoFiltro = ev.target.value; disegnaFoto(A); });
+collegaDropzone($("fotoDrop"), $("fotoFile"), caricaFoto);
 
-const drop = $("fotoDrop");
-["dragenter","dragover"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("hot"); }));
-["dragleave","drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove("hot"); }));
-drop.addEventListener("drop", e => { if(e.dataTransfer?.files) caricaFoto(e.dataTransfer.files); });
-drop.addEventListener("click", () => $("fotoFile").click());
+/* ───────────────────────────── bolle e DDT ───────────────────────────── */
 
-/* ------------------------------ DDT ------------------------------ */
+async function caricaDdt(files){
+  if(!A.isImpresa()){ toast("Solo l'impresa esecutrice può caricare i documenti."); return; }
+  const arr = Array.from(files || []);
+  if(!arr.length) return;
+  toast(`Caricamento di ${arr.length} documenti…`);
+  let ok = 0;
+  for(const file of arr){
+    try{ await A.store.aggiungiDdt(file); ok++; }
+    catch(e){ toast(errMsg(e)); }
+  }
+  if(ok){ toast(`${ok} documenti caricati.`); await ricarica(); }
+}
 
-let ddtFile = null;
+collegaDropzone($("ddtDrop"), $("ddtFile"), caricaDdt);
 $("ddtPick").addEventListener("click", () => $("ddtFile").click());
-$("ddtFile").addEventListener("change", ev => {
-  ddtFile = ev.target.files[0] || null;
-  $("ddtFileName").textContent = ddtFile ? ddtFile.name : "Nessun file selezionato";
-});
-$("ddtSave").addEventListener("click", async () => {
-  const numero = $("ddtNum").value.trim();
-  const data = $("ddtData").value;
-  if(!numero || !data){ toast("Indicare almeno numero e data del documento."); return; }
-  const btn = $("ddtSave"); btn.disabled = true;
-  try{
-    await A.store.aggiungiDdt({
-      numero, data,
-      fornitore: $("ddtForn").value.trim(),
-      descrizione: $("ddtDesc").value.trim(),
-      faseId: $("ddtFase").value
-    }, ddtFile);
-    toast("Bolla registrata.");
-    ["ddtNum","ddtForn","ddtDesc"].forEach(i => { $(i).value = ""; });
-    ddtFile = null;
-    $("ddtFile").value = "";
-    $("ddtFileName").textContent = "Nessun file selezionato";
-    await ricarica();
-  }catch(e){ toast(errMsg(e)); }
-  finally{ btn.disabled = false; }
-});
 
-/* ------------------------------ presenze ------------------------------ */
+function collegaDropzone(zona, input, azione){
+  zona.addEventListener("click", () => input.click());
+  input.addEventListener("change", ev => { azione(ev.target.files); ev.target.value = ""; });
+  ["dragenter","dragover"].forEach(t =>
+    zona.addEventListener(t, e => { e.preventDefault(); zona.classList.add("hot"); }));
+  ["dragleave","drop"].forEach(t =>
+    zona.addEventListener(t, e => { e.preventDefault(); zona.classList.remove("hot"); }));
+  zona.addEventListener("drop", e => { if(e.dataTransfer?.files) azione(e.dataTransfer.files); });
+}
+
+/* ───────────────────────────── presenze ───────────────────────────── */
 
 $("mnSave").addEventListener("click", async () => {
   const data = $("mnData").value;
@@ -289,7 +343,10 @@ $("mnSave").addEventListener("click", async () => {
   finally{ btn.disabled = false; }
 });
 
-/* ------------------------------ richieste ------------------------------ */
+/* ───────────────────────────── richieste ───────────────────────────── */
+
+$("rqApri").addEventListener("click", () => { $("rqForm").hidden = false; $("rqTit").focus(); });
+$("rqChiudi").addEventListener("click", () => { $("rqForm").hidden = true; });
 
 $("rqSend").addEventListener("click", async () => {
   const titolo = $("rqTit").value.trim();
@@ -305,17 +362,17 @@ $("rqSend").addEventListener("click", async () => {
     });
     toast("Richiesta inoltrata all'impresa.");
     $("rqTit").value = ""; $("rqTxt").value = ""; $("rqDue").value = "";
+    $("rqForm").hidden = true;
     await ricarica();
   }catch(e){ toast(errMsg(e)); }
   finally{ btn.disabled = false; }
 });
-$("rqFilter").addEventListener("change", ev => { A.reqFiltro = ev.target.value; disegnaRichieste(A); });
 
-/* ------------------------------ esportazioni ------------------------------ */
+/* ───────────────────────────── esportazioni ───────────────────────────── */
 
 $("expCsv").addEventListener("click", () => {
-  const rows = [["N","Attività","Livello","Baseline inizio","Baseline fine","Durata (gg)","Importo",
-                 "Inizio reale","Fine reale","Avanzamento %","Δ inizio (gg)","Δ fine (gg)","Giustificazione"]];
+  const rows = [["N","Attività","Livello","Contratto inizio","Contratto fine","Durata (gg)","Importo",
+                 "Reale inizio","Reale fine","Avanzamento %","Δ inizio (gg)","Δ fine (gg)","Motivo dello scostamento"]];
   for(const r of BASE){
     const c = (r.foglia && !r.continua) ? calc(r, A.dati.fasi[r.id] || {}, A.oggi) : null;
     rows.push([r.n, r.nome, r.liv, fmtD(r.i), fmtD(r.f), r.durata, nf2(r.costo),
@@ -323,15 +380,6 @@ $("expCsv").addEventListener("click", () => {
       c ? c.av : "", c ? c.dI : "", c ? c.dF : "", c ? c.just : ""]);
   }
   scaricaTesto(csv(rows), "cronoprogramma-3613-asilo-marcaria.csv");
-});
-
-$("ddtCsv").addEventListener("click", () => {
-  const rows = [["Data","N. documento","Fornitore","Materiale","Fase","Allegato"]];
-  for(const r of A.dati.ddt.slice().sort((a,b) => String(a.data||"").localeCompare(String(b.data||"")))){
-    rows.push([fmtD(r.data), r.numero||"", r.fornitore||"", r.descrizione||"",
-               BY_ID[r.faseId]?.nome || "", r.path ? "sì" : "no"]);
-  }
-  scaricaTesto(csv(rows), "registro-ddt-3613.csv");
 });
 
 $("mnCsv").addEventListener("click", () => {
@@ -343,36 +391,44 @@ $("mnCsv").addEventListener("click", () => {
   scaricaTesto(csv(rows), "presenze-cantiere-3613.csv");
 });
 
-/* ------------------------------ navigazione ------------------------------ */
+/* ───────────────────────────── navigazione ───────────────────────────── */
 
 function selezionaTab(t){
   A.tab = t;
-  document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === t ? "true" : "false"));
+  document.querySelectorAll(".tab").forEach(b =>
+    b.setAttribute("aria-selected", b.dataset.tab === t ? "true" : "false"));
   for(const k of ["crono","foto","ddt","mano","req"]) $("tp-" + k).hidden = (k !== t);
   try{ localStorage.setItem("kronos.tab", t); }catch(e){}
-  if(t === "crono") disegnaGantt($("gbody"), {fasi:A.dati.fasi, oggi:A.oggi, px:A.px});
+  if(t === "crono") disegnaCrono();
 }
-document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => selezionaTab(b.dataset.tab)));
+document.querySelectorAll(".tab").forEach(b =>
+  b.addEventListener("click", () => selezionaTab(b.dataset.tab)));
 
-$("zoomIn").addEventListener("click", () => {
-  A.px = Math.min(20, A.px + 2);
-  disegnaGantt($("gbody"), {fasi:A.dati.fasi, oggi:A.oggi, px:A.px});
-});
-$("zoomOut").addEventListener("click", () => {
-  A.px = Math.max(3, A.px - 2);
-  disegnaGantt($("gbody"), {fasi:A.dati.fasi, oggi:A.oggi, px:A.px});
-});
+$("zoomIn").addEventListener("click", () => { A.px = Math.min(22, A.px + 2); disegnaCrono(); });
+$("zoomOut").addEventListener("click", () => { A.px = Math.max(3, A.px - 2); disegnaCrono(); });
+
+/* le due tavole scorrono insieme: il confronto a vista deve restare allineato */
+(function sincronizzaScorrimento(){
+  const a = $("gscroll-base"), b = $("gscroll-reale");
+  let bloccato = false;
+  const lega = (da, verso) => da.addEventListener("scroll", () => {
+    if(bloccato) return;
+    bloccato = true;
+    verso.scrollLeft = da.scrollLeft;
+    requestAnimationFrame(() => { bloccato = false; });
+  });
+  lega(a, b); lega(b, a);
+})();
 
 let rz = null;
 window.addEventListener("resize", () => {
   clearTimeout(rz);
-  rz = setTimeout(() => { if(A.tab === "crono") disegnaGantt($("gbody"), {fasi:A.dati.fasi, oggi:A.oggi, px:A.px}); }, 180);
+  rz = setTimeout(() => { if(A.tab === "crono") disegnaCrono(); }, 180);
 });
 
-/* ------------------------------ predisposizioni ------------------------------ */
+/* ───────────────────────────── predisposizioni ───────────────────────────── */
 
 $("mnData").value = A.oggi;
-$("ddtData").value = A.oggi;
 try{
   const t = localStorage.getItem("kronos.tab");
   selezionaTab(t && ["crono","foto","ddt","mano","req"].includes(t) ? t : "crono");

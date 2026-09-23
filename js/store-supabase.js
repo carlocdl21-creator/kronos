@@ -65,7 +65,7 @@ export function creaStoreSupabase(){
         sb.from("profili").select("id,nome,ruolo"),
         sb.from("fasi").select("*"),
         sb.from("foto").select("*").order("creato_il", {ascending:false}),
-        sb.from("ddt").select("*").order("data", {ascending:false}),
+        sb.from("ddt").select("*").order("creato_il", {ascending:false}),
         sb.from("presenze").select("*").order("data", {ascending:false}),
         sb.from("richieste").select("*").order("creato_il", {ascending:false}),
         sb.from("richieste_eventi").select("*").order("creato_il", {ascending:true})
@@ -96,8 +96,7 @@ export function creaStoreSupabase(){
           nomeFile:r.nome_file, tipo:r.tipo, autore:nome(r.creato_da), creatoIl:r.creato_il
         })),
         ddt: (dd.data||[]).map(r => ({
-          id:r.id, numero:r.numero, data:r.data, fornitore:r.fornitore, descrizione:r.descrizione,
-          faseId:r.fase_id, path:r.path, nomeFile:r.nome_file, tipo:r.tipo,
+          id:r.id, path:r.path, nomeFile:r.nome_file, tipo:r.tipo,
           autore:nome(r.creato_da), creatoIl:r.creato_il
         })),
         presenze: (pr.data||[]).map(r => ({
@@ -158,21 +157,18 @@ export function creaStoreSupabase(){
     },
 
     /* ----------------- bolle e DDT ----------------- */
-    async aggiungiDdt(meta, file){
-      let path = null;
-      if(file){
-        const key = `ddt/${Date.now()}-${Math.random().toString(36).slice(2,8)}-${file.name.replace(/[^\w.\-]+/g,"_")}`;
-        const up = await sb.storage.from(CONFIG.BUCKET_DOCUMENTI)
-          .upload(key, file, { contentType:file.type, upsert:false });
-        if(up.error) throw up.error;
-        path = "documenti/" + key;
-      }
+    async aggiungiDdt(file){
+      const key = `ddt/${Date.now()}-${Math.random().toString(36).slice(2,8)}-${file.name.replace(/[^\w.\-]+/g,"_")}`;
+      const up = await sb.storage.from(CONFIG.BUCKET_DOCUMENTI)
+        .upload(key, file, { contentType:file.type, upsert:false });
+      if(up.error) throw up.error;
       const { error } = await sb.from("ddt").insert({
-        numero:meta.numero, data:meta.data, fornitore:meta.fornitore || null,
-        descrizione:meta.descrizione || null, fase_id:meta.faseId || null,
-        path, nome_file:file?.name || null, tipo:file?.type || null, creato_da:this.utente.id
+        path:"documenti/" + key, nome_file:file.name, tipo:file.type, creato_da:this.utente.id
       });
-      if(error) throw error;
+      if(error){
+        await sb.storage.from(CONFIG.BUCKET_DOCUMENTI).remove([key]);
+        throw error;
+      }
     },
     async eliminaDdt(r){
       const { error } = await sb.from("ddt").delete().eq("id", r.id);

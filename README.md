@@ -1,4 +1,4 @@
-# KRONOS
+# KRONOS by HANZO
 
 Applicativo di programmazione e monitoraggio della commessa.
 
@@ -21,11 +21,11 @@ Comune di Marcaria (MN), CUP E75E26000030004.
 
 | | Impresa esecutrice | Stazione Appaltante / Direzione Lavori |
 |---|---|---|
-| Cronoprogramma | aggiorna date reali, avanzamenti, giustificazioni | consulta ed esporta |
-| Foto lavorazioni | carica ed elimina | consulta e scarica |
-| Bolle e DDT | registra ed elimina | consulta e scarica |
+| Cronoprogramma reale | trascina e allunga le barre, dichiara l'avanzamento, scrive il motivo degli scostamenti | consulta ed esporta |
+| Foto lavorazioni | carica ed elimina dentro la cartella della fase | consulta e scarica |
+| Bolle e DDT | carica ed elimina i documenti | consulta e scarica |
 | Presenze cantiere | registra ed elimina | consulta ed esporta |
-| Richieste | aggiorna lo stato (presa in carico → in lavorazione → terminata) | inoltra le richieste |
+| Richieste | aggiorna lo stato (presa in carico → in lavorazione → terminata) e risponde | inoltra le richieste e risponde |
 
 I permessi non sono soltanto nascosti nell'interfaccia: sono applicati dal
 database tramite le policy RLS di `supabase/schema.sql`.
@@ -41,8 +41,8 @@ js/config.js            → UNICO FILE DA COMPILARE: indirizzo e chiave Supabase
 js/app.js               avvio, accesso, eventi, esportazioni
 js/baseline.js          le 31 righe del cronoprogramma contrattuale
 js/calcoli.js           scostamenti, avanzamento atteso, avanzamento economico
-js/gantt.js             diagramma a due bande (baseline / reale)
-js/views.js             disegno delle cinque sezioni
+js/gantt.js             le due tavole di Gantt e il trascinamento delle barre
+js/views.js             disegno delle sezioni (cartelle foto, bolle, presenze, richieste)
 js/store-supabase.js    archivio condiviso: database, file, tempo reale
 js/store-demo.js        archivio dimostrativo locale (senza server)
 js/util.js              date, numeri, CSV, messaggi
@@ -120,6 +120,10 @@ del nuovo cronoprogramma e aggiornare la testata in `index.html`
 (oggetto, stazione appaltante, CUP, importo, termini). Gli `id` delle righe
 sono le chiavi della tabella `fasi`: cambiandoli si azzerano gli avanzamenti.
 
-**Soglie di allarme.** In `js/calcoli.js`: uno scostamento oltre 5 giorni sul
-termine è critico, oltre 0 è un'attenzione, e un avanzamento inferiore di oltre
-15 punti rispetto all'atteso richiede giustificazione.
+**Scostamenti.** In `js/calcoli.js`: una lavorazione è in scostamento quando la
+barra reale non coincide con quella di contratto (inizio o fine diversi). Finché
+manca il motivo scritto la barra resta rossa; appena il motivo è inserito torna
+al colore normale e il testo compare a fianco della barra.
+
+**Aspetto.** `css/app.css` riprende il design system di HANZO: carattere Poppins,
+palette neutra bianco/zinco/nero, semaforico discreto, raggi 8–14, ombre leggere.
