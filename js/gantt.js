@@ -161,12 +161,14 @@ export function disegnaGantt(gbody, o){
       let finePct = x(b.f) + px;
       if(tracciabile){
         const largh = Math.max(6, (diffDays(b.f, b.i) + 1) * px);
-        const dentro = largh >= 46;
+        const fuoriX = x(b.f) + px + 5;
+        // fuori dalla barra solo se la barra è stretta E c'è posto a destra
+        const dentro = largh >= 46 || fuoriX + 40 > TW;
         const bolla = el("div", "gpct-bolla" + (dentro ? "" : " fuori") + (b.av ? "" : " zero"), b.av + "%");
         bolla.style.left = dentro
-          ? (x(b.i) + largh - 40) + "px"
-          : (x(b.f) + px + 5) + "px";
-        if(!dentro) finePct = x(b.f) + px + 5 + 40;
+          ? Math.max(0, Math.min(x(b.i) + largh - 40, TW - 40)) + "px"
+          : fuoriX + "px";
+        if(!dentro) finePct = fuoriX + 40;
         tr.appendChild(bolla);
       }
 
@@ -179,7 +181,27 @@ export function disegnaGantt(gbody, o){
           ? `Motivo dello scostamento:\n${nota}` + (o.editabile ? "\n\nFai clic per modificare." : "")
           : (o.editabile ? "Scostamento da giustificare: fai clic per scrivere il motivo."
                          : "Scostamento non ancora giustificato dall'impresa.");
-        chip.style.left = Math.min(finePct + 8, Math.max(0, TW - 292)) + "px";
+        /* l'etichetta non deve mai coprire la barra: sta a destra se c'è
+           spazio, altrimenti a sinistra, altrimenti si riduce alla sola icona */
+        const VUOTO = 6, MAX = 210, MIN = 64;
+        const dopo = finePct + VUOTO;
+        const spazioDx = TW - dopo;
+        let sinistra, largheMax;
+        if(spazioDx >= MIN){
+          sinistra = dopo;
+          largheMax = Math.min(MAX, spazioDx - 2);
+        } else {
+          const spazioSx = x(b.i) - VUOTO;
+          if(spazioSx >= MIN){
+            largheMax = Math.min(MAX, spazioSx - 2);
+            sinistra = x(b.i) - VUOTO - largheMax;
+          } else {
+            sinistra = dopo;
+            largheMax = Math.max(22, spazioDx - 2);
+          }
+        }
+        chip.style.left = Math.max(0, sinistra) + "px";
+        chip.style.maxWidth = largheMax + "px";
         if(o.editabile) chip.addEventListener("click", () => o.onNota(r));
         else chip.dataset.solaLettura = "1";
         tr.appendChild(chip);

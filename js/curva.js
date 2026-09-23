@@ -11,8 +11,8 @@ import { addDays, diffDays, iso, fmtD, el, clear, nf0 } from "./util.js";
 
 const MESI = ["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
 const SVGNS = "http://www.w3.org/2000/svg";
-const M = {t:14, r:58, b:26, l:34};          // margini: a destra spazio per le etichette
-const H = 190;
+const M = {t:10, r:58, b:22, l:32};          // margini: a destra spazio per le etichette
+const H = 146;
 
 const nodo = (t, attr) => {
   const n = document.createElementNS(SVGNS, t);

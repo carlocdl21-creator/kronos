@@ -464,10 +464,8 @@ try{
   const v = localStorage.getItem("kronos.vista");
   if(v === "unico" || v === "doppio") A.vista = v;
 }catch(e){}
-$("cartPeriodo").textContent =
-  `Comune di Marcaria (MN) · ${fmtD(INIZIO_CONTRATTO)} → ${fmtD(FINE_CONTRATTO)}`;
 for(const [etichetta, valore] of [
-  ["Oggetto", "Nuovo Asilo Nido Comunale"],
+  ["Marcaria (MN)", ""],
   ["CUP", "E75E26000030004"],
   ["Importo", "€ 771.395,62"],
   ["Consegna", fmtD(INIZIO_CONTRATTO)],
@@ -475,8 +473,10 @@ for(const [etichetta, valore] of [
   ["Durata", "121 giorni naturali"]
 ]){
   const v = el("span");
-  v.appendChild(el("span", null, etichetta + " "));
-  v.appendChild(el("b", null, valore));
+  if(valore){
+    v.appendChild(el("span", null, etichetta + " "));
+    v.appendChild(el("b", null, valore));
+  } else v.appendChild(el("b", null, etichetta));
   $("stDati").appendChild(v);
 }
 $("mnData").value = A.oggi;

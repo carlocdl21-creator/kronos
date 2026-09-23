@@ -52,11 +52,13 @@ export function disegnaKpi(A){
   const lu = $("lastUpd");
   if(k.ultimoAgg){
     const gg = Math.floor((Date.now() - new Date(k.ultimoAgg).getTime()) / MS);
-    lu.textContent = `Ultimo aggiornamento: ${fmtTs(k.ultimoAgg)}${gg > 0 ? ` — ${gg} giorni fa` : " — oggi"}.` +
-      (gg > 7 ? " Il cronoprogramma va aggiornato con cadenza settimanale." : "");
+    lu.textContent = `agg. ${fmtTs(k.ultimoAgg)}` + (gg > 7 ? ` · ${gg} gg fa` : "");
+    lu.title = gg > 7
+      ? "Il cronoprogramma va aggiornato con cadenza settimanale."
+      : "Ultimo aggiornamento del cronoprogramma";
     lu.style.color = gg > 7 ? "var(--no)" : "var(--mute)";
   } else {
-    lu.textContent = "Nessun avanzamento ancora dichiarato dall'impresa.";
+    lu.textContent = "nessun avanzamento dichiarato";
     lu.style.color = "var(--mute)";
   }
 

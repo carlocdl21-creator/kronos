@@ -64,24 +64,18 @@
           <small class="brand-by">by Hanzo</small>
         </div>
       </div>
-      <div class="commessa-mini">
-        <b>3613 · Nuovo Asilo Nido Comunale</b>
-        <span id="cartPeriodo">Comune di Marcaria (MN)</span>
+      <div class="tabs" role="tablist" aria-label="Sezioni del cantiere">
+        <button class="tab" role="tab" id="tb-crono" aria-controls="tp-crono" aria-selected="true" data-tab="crono"><i class="bi bi-bar-chart-steps"></i> Cronoprogramma</button>
+        <button class="tab" role="tab" id="tb-foto" aria-controls="tp-foto" aria-selected="false" data-tab="foto"><i class="bi bi-images"></i> Foto <span class="cnt" id="cnt-foto">0</span></button>
+        <button class="tab" role="tab" id="tb-ddt" aria-controls="tp-ddt" aria-selected="false" data-tab="ddt"><i class="bi bi-file-earmark-text"></i> Bolle <span class="cnt" id="cnt-ddt">0</span></button>
+        <button class="tab" role="tab" id="tb-mano" aria-controls="tp-mano" aria-selected="false" data-tab="mano"><i class="bi bi-people"></i> Presenze <span class="cnt" id="cnt-mano">0</span></button>
+        <button class="tab" role="tab" id="tb-req" aria-controls="tp-req" aria-selected="false" data-tab="req"><i class="bi bi-chat-left-dots"></i> Richieste <span class="cnt" id="cnt-req">0</span></button>
       </div>
       <div class="topbar-act">
         <span class="whoami" id="whoami"></span>
         <span id="roleChip" class="role-chip sa"><i class="bi bi-person-badge"></i><span id="roleName">—</span></span>
         <button class="btn sm ghost" id="btnRefresh" title="Ricarica i dati dall'archivio"><i class="bi bi-arrow-clockwise"></i></button>
         <button class="btn sm" id="btnLogout"><i class="bi bi-box-arrow-right"></i> Esci</button>
-      </div>
-    </div>
-    <div class="tabs-wrap">
-      <div class="tabs" role="tablist" aria-label="Sezioni del cantiere">
-        <button class="tab" role="tab" id="tb-crono" aria-controls="tp-crono" aria-selected="true" data-tab="crono"><i class="bi bi-bar-chart-steps"></i> Cronoprogramma</button>
-        <button class="tab" role="tab" id="tb-foto" aria-controls="tp-foto" aria-selected="false" data-tab="foto"><i class="bi bi-images"></i> Foto lavorazioni <span class="cnt" id="cnt-foto">0</span></button>
-        <button class="tab" role="tab" id="tb-ddt" aria-controls="tp-ddt" aria-selected="false" data-tab="ddt"><i class="bi bi-file-earmark-text"></i> Bolle e DDT <span class="cnt" id="cnt-ddt">0</span></button>
-        <button class="tab" role="tab" id="tb-mano" aria-controls="tp-mano" aria-selected="false" data-tab="mano"><i class="bi bi-people"></i> Presenze <span class="cnt" id="cnt-mano">0</span></button>
-        <button class="tab" role="tab" id="tb-req" aria-controls="tp-req" aria-selected="false" data-tab="req"><i class="bi bi-chat-left-dots"></i> Richieste <span class="cnt" id="cnt-req">0</span></button>
       </div>
     </div>
   </header>
@@ -96,11 +90,11 @@
     <!-- ═══════════ CRONOPROGRAMMA ═══════════ -->
     <section id="tp-crono" role="tabpanel" aria-labelledby="tb-crono">
       <div class="striscia">
-        <span class="st-tit"><i class="bi bi-bar-chart-steps"></i> Cronoprogramma</span>
+        <span class="st-tit">3613 · Nuovo Asilo Nido Comunale</span>
         <span class="st-dati" id="stDati"></span>
+        <span class="st-agg" id="lastUpd"></span>
         <button class="btn sm" id="expCsv"><i class="bi bi-download"></i> CSV</button>
       </div>
-      <p class="st-agg" id="lastUpd">—</p>
 
       <div class="kpibar" id="kpis"></div>
       <div id="alertZone"></div>
