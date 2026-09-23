@@ -49,6 +49,7 @@ js/store-demo.js        archivio dimostrativo locale (senza server)
 js/util.js              date, numeri, CSV, messaggi
 supabase/schema.sql     tabelle, ruoli, policy, bucket dei file
 supabase/codici.sql     codici d'invito e prima utenza amministratrice
+supabase/verifica.sql   controllo dell'installazione, non modifica nulla
 dev-server.py           server locale di prova, senza cache
 assets/                 icone e marchi del raggruppamento
 manifest.json           per aggiungere KRONOS alla schermata Home del telefono
@@ -77,8 +78,12 @@ la libreria Supabase viene caricata dal CDN.
 4. **SQL Editor**: aprire `supabase/codici.sql`, mettere la propria email al
    posto di `TUA-EMAIL@esempio.it` ed eseguire. Crea i due codici d'invito e
    abilita l'amministratore. In fondo stampa codici e utenze: annotare i codici.
-5. **Project Settings → API**: copiare *Project URL* e la chiave
-   *anon public* in `js/config.js`.
+5. Eseguire `supabase/verifica.sql`: sei righe, tutte devono dire **ok**.
+   Chi dice *MANCA* indica da sé come rimediare.
+6. **Project Settings → API**: copiare *Project URL* e la chiave
+   *anon public* (sui progetti nuovi si chiama *publishable*, comincia per
+   `sb_publishable_`) in `js/config.js`. Mai la *service_role*: quella
+   scavalca tutte le regole di accesso.
 
 ### Come entrano gli altri
 
