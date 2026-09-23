@@ -13,8 +13,8 @@
    ========================================================================== */
 
 export const CONFIG = {
-  SUPABASE_URL: "",
-  SUPABASE_ANON_KEY: "",
+  SUPABASE_URL: "https://cdwoceuocsqadpavgshd.supabase.co",
+  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkd29jZXVvY3NxYWRwYXZnc2hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxNzk1NjksImV4cCI6MjEwNTc1NTU2OX0.VLyaYbX8FA72pUbuUR0P8TDkH_XypavROYbL0iKyFUA",
 
   /** Bucket dell'archivio file (creati da schema.sql). */
   BUCKET_FOTO: "foto",
