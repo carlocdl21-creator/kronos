@@ -3,9 +3,9 @@
    ══════════════════════════════════════════════════════════════════ */
 
 import { CONFIG, isConfigurato } from "./config.js";
-import { BASE, BY_ID } from "./baseline.js";
+import { BASE, BY_ID, INIZIO_CONTRATTO, FINE_CONTRATTO } from "./baseline.js";
 import { calc } from "./calcoli.js";
-import { disegnaGantt, scala } from "./gantt.js";
+import { disegnaGantt, scala, larghezzaEtichette } from "./gantt.js";
 import {
   disegnaKpi, disegnaFoto, disegnaDdt, disegnaPresenze,
   disegnaRichieste, riempiSelettoriFase
@@ -21,7 +21,7 @@ const A = {
   dati: { fasi:{}, foto:[], ddt:[], presenze:[], richieste:[] },
   oggi: todayISO(),
   tab: "crono",
-  px: 8,
+  zoom: 1,      // 1 = tutta la commessa a schermo
   faseAperta: null,
   reqFiltro: "",
   rqRisposta: null,
@@ -142,9 +142,19 @@ function render(){
   }, 0);
 }
 
+/** Pixel per giorno: con zoom 1 l'intera commessa sta nella larghezza
+ *  disponibile, così tutti i mesi restano sempre visibili. */
+function pixelPerGiorno(sc){
+  const cont = $("gscroll-base");
+  const largh = (cont.clientWidth || window.innerWidth - 40) - larghezzaEtichette() - 2;
+  const fit = Math.max(2, Math.floor(largh / sc.giorni));
+  return Math.max(2, Math.round(fit * A.zoom));
+}
+
 function disegnaCrono(){
   const sc = scala(A.dati.fasi, A.oggi);
-  const comune = { fasi:A.dati.fasi, oggi:A.oggi, px:A.px, sc };
+  const px = pixelPerGiorno(sc);
+  const comune = { fasi:A.dati.fasi, oggi:A.oggi, px, sc };
   disegnaGantt($("gbody-base"),  {...comune, modo:"base"});
   disegnaGantt($("gbody-reale"), {...comune, modo:"reale",
     editabile: A.isImpresa(),
@@ -404,8 +414,8 @@ function selezionaTab(t){
 document.querySelectorAll(".tab").forEach(b =>
   b.addEventListener("click", () => selezionaTab(b.dataset.tab)));
 
-$("zoomIn").addEventListener("click", () => { A.px = Math.min(22, A.px + 2); disegnaCrono(); });
-$("zoomOut").addEventListener("click", () => { A.px = Math.max(3, A.px - 2); disegnaCrono(); });
+$("zoomIn").addEventListener("click", () => { A.zoom = Math.min(5, A.zoom + .5); disegnaCrono(); });
+$("zoomOut").addEventListener("click", () => { A.zoom = Math.max(1, A.zoom - .5); disegnaCrono(); });
 
 /* le due tavole scorrono insieme: il confronto a vista deve restare allineato */
 (function sincronizzaScorrimento(){
@@ -428,6 +438,21 @@ window.addEventListener("resize", () => {
 
 /* ───────────────────────────── predisposizioni ───────────────────────────── */
 
+$("cartPeriodo").textContent =
+  `Comune di Marcaria (MN) · ${fmtD(INIZIO_CONTRATTO)} → ${fmtD(FINE_CONTRATTO)}`;
+for(const [etichetta, valore] of [
+  ["Oggetto", "Nuovo Asilo Nido Comunale"],
+  ["CUP", "E75E26000030004"],
+  ["Importo", "€ 771.395,62"],
+  ["Consegna", fmtD(INIZIO_CONTRATTO)],
+  ["Termine", fmtD(FINE_CONTRATTO)],
+  ["Durata", "121 giorni naturali"]
+]){
+  const v = el("span");
+  v.appendChild(el("span", null, etichetta + " "));
+  v.appendChild(el("b", null, valore));
+  $("stDati").appendChild(v);
+}
 $("mnData").value = A.oggi;
 try{
   const t = localStorage.getItem("kronos.tab");

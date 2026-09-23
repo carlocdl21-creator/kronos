@@ -5,9 +5,8 @@
    i dati NON sono condivisi fra utenti né fra dispositivi.
    ========================================================================== */
 
-import { todayISO } from "./util.js";
 
-const K = "kronos.demo.v1";
+const K = "kronos.demo.v2";   // cambiando versione i vecchi dati di prova vengono ignorati
 const DB_NAME = "kronos-files";
 
 /* ---------- IndexedDB minimale per i file ---------- */
@@ -48,37 +47,19 @@ const uid = () => "d" + Math.random().toString(36).slice(2, 11);
 
 /* ---------- dati di esempio ---------- */
 function semina(){
-  const T = todayISO();
   return {
     fasi: {
-      fondazioni: {inizio:"2026-08-03", fine:"2026-08-29", avanz:100,
-        giust:"Avvio posticipato di 2 giorni per il completamento della bonifica del piano di posa. Fine slittata di 3 giorni per sospensione delle lavorazioni nelle giornate del 18 e 19/08 (allerta meteo arancione). Recupero programmato sulle opere di impermeabilizzazione.",
-        giustData:"2026-08-31T07:40:00.000Z", aggiornatoIl:"2026-08-31T07:40:00.000Z", autore:"Impresa esecutrice"},
-      impermeab: {inizio:"2026-08-31", fine:"2026-09-04", avanz:100,
-        giust:"Slittamento di 4 giorni conseguente al termine delle opere di fondazione. Durata della lavorazione invariata (5 gg): nessun impatto sull'avvio del montaggio XLAM.",
-        giustData:"2026-09-04T15:10:00.000Z", aggiornatoIl:"2026-09-04T15:10:00.000Z", autore:"Impresa esecutrice"},
-      xlam: {inizio:"2026-09-07", fine:"2026-09-22", avanz:100,
-        giust:"Consegna dei pannelli XLAM posticipata di 6 giorni dal fornitore (rif. DDT n. 2026/1487 del 07/09). Durata di montaggio rispettata (16 gg). Azione correttiva: turno aggiuntivo del sabato sulle opere di copertura per il recupero del ritardo.",
-        giustData:"2026-09-22T16:05:00.000Z", aggiornatoIl:"2026-09-22T16:05:00.000Z", autore:"Impresa esecutrice"},
-      cop_strut: {inizio:"2026-09-23", fine:"2026-09-28", avanz:30,
-        giust:"Avvio subordinato al completamento del montaggio XLAM (+6 gg). Squadra raddoppiata dal 23/09: la lavorazione si chiude in 6 giorni anziché 5, con recupero di 1 giorno sul ritardo accumulato.",
-        giustData:"2026-09-23T06:50:00.000Z", aggiornatoIl:"2026-09-23T06:50:00.000Z", autore:"Impresa esecutrice"},
-      cop_arch: {inizio:"2026-09-24", fine:"2026-10-03", avanz:5,
-        giust:"", giustData:null, aggiornatoIl:"2026-09-23T06:52:00.000Z", autore:"Impresa esecutrice"}
+      // ri-programmazione dichiarata prima dell'avvio: scostamento giustificato
+      fondazioni: {inizio:"2026-10-07", fine:"2026-11-03", avanz:0,
+        giust:"Avvio posticipato di 2 giorni per l'allestimento del cantiere e la bonifica del piano di posa. Il recupero è previsto sulle impermeabilizzazioni, che restano nei 5 giorni di contratto.",
+        giustData:"2026-09-22T09:10:00.000Z", aggiornatoIl:"2026-09-22T09:10:00.000Z", autore:"Impresa esecutrice"},
+      // stesso scostamento, ma senza motivo scritto: la barra resta rossa
+      impermeab: {inizio:"2026-11-04", fine:"2026-11-08", avanz:0,
+        giust:"", giustData:null, aggiornatoIl:"2026-09-22T09:12:00.000Z", autore:"Impresa esecutrice"}
     },
     foto: [],
     ddt: [],
-    presenze: [
-      {id:"p1", data:"2026-09-21", impresa:"Impresa esecutrice – squadra carpenteria", nOperai:7, ore:56,
-       faseId:"xlam", nominativi:"Rossi M., Bianchi L., Ferrari A., Conti P., Moretti S., Rizzo D., Greco V.",
-       autore:"Impresa esecutrice", creatoIl:"2026-09-21T17:00:00.000Z"},
-      {id:"p2", data:"2026-09-22", impresa:"Impresa esecutrice – squadra carpenteria", nOperai:7, ore:56,
-       faseId:"xlam", nominativi:"Rossi M., Bianchi L., Ferrari A., Conti P., Moretti S., Rizzo D., Greco V.",
-       autore:"Impresa esecutrice", creatoIl:"2026-09-22T17:05:00.000Z"},
-      {id:"p3", data:T, impresa:"Impresa esecutrice + subappalto lattoneria", nOperai:9, ore:72,
-       faseId:"cop_strut", nominativi:"Rossi M., Bianchi L., Ferrari A., Conti P., Moretti S., Rizzo D., Greco V., Sala G., Neri F.",
-       autore:"Impresa esecutrice", creatoIl:new Date().toISOString()}
-    ],
+    presenze: [],
     richieste: [
       {id:"r001", titolo:"Trasmissione certificati di posa e marcatura CE pannelli XLAM",
        testo:"Si richiede la trasmissione dei certificati di marcatura CE dei pannelli XLAM e della dichiarazione di corretta posa a firma del direttore tecnico di cantiere, con riferimento ai carichi di cui ai DDT 2026/1487 e 2026/1512.",

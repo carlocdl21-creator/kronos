@@ -66,7 +66,7 @@
       </div>
       <div class="commessa-mini">
         <b>3613 · Nuovo Asilo Nido Comunale</b>
-        <span>Comune di Marcaria (MN) · 01/08/2026 → 29/11/2026</span>
+        <span id="cartPeriodo">Comune di Marcaria (MN)</span>
       </div>
       <div class="topbar-act">
         <span class="whoami" id="whoami"></span>
@@ -95,34 +95,21 @@
 
     <!-- ═══════════ CRONOPROGRAMMA ═══════════ -->
     <section id="tp-crono" role="tabpanel" aria-labelledby="tb-crono">
-      <div class="adm-top">
-        <div class="adm-top-tit">
-          <span class="eyebrow"><i class="bi bi-bar-chart-steps"></i> Programmazione</span>
-          <h1>Cronoprogramma della commessa</h1>
-          <p id="lastUpd">—</p>
-        </div>
-        <div class="adm-top-act">
-          <button class="btn sm" id="expCsv"><i class="bi bi-download"></i> Esporta CSV</button>
-        </div>
+      <div class="striscia">
+        <span class="st-tit"><i class="bi bi-bar-chart-steps"></i> Cronoprogramma</span>
+        <span class="st-dati" id="stDati"></span>
+        <button class="btn sm" id="expCsv"><i class="bi bi-download"></i> CSV</button>
       </div>
+      <p class="st-agg" id="lastUpd">—</p>
 
-      <div class="cartiglio" style="margin-bottom:16px">
-        <div class="cart-cell"><div class="k">Oggetto</div><div class="v">Nuovo Asilo Nido Comunale</div></div>
-        <div class="cart-cell"><div class="k">Stazione appaltante</div><div class="v">Comune di Marcaria (MN)</div></div>
-        <div class="cart-cell"><div class="k">CUP</div><div class="v">E75E26000030004</div></div>
-        <div class="cart-cell"><div class="k">Importo lavori</div><div class="v">€ 771.395,62</div></div>
-        <div class="cart-cell"><div class="k">Termine contrattuale</div><div class="v">29/11/2026</div></div>
-        <div class="cart-cell"><div class="k">Durata</div><div class="v">121 giorni naturali</div></div>
-      </div>
-
-      <div class="kpis" id="kpis"></div>
+      <div class="kpibar" id="kpis"></div>
       <div id="alertZone"></div>
 
       <!-- diagramma contrattuale -->
       <div class="card">
         <div class="card-hd">
           <h2>Cronoprogramma contrattuale</h2>
-          <span class="sub">Baseline di gara — elaborato 3613_E_GE_1016 rev. 00. Non modificabile.</span>
+          <span class="sub">Baseline di gara, elaborato 3613_E_GE_1016 rev. 00 — non modificabile.</span>
         </div>
         <div class="gscroll" id="gscroll-base"><div class="gbody" id="gbody-base"></div></div>
       </div>
@@ -135,17 +122,13 @@
           <div class="act">
             <span class="legend">
               <span><i class="sw sw-ok"></i>In linea</span>
-              <span><i class="sw sw-no"></i>Scostamento da giustificare</span>
-              <span><i class="sw sw-note"></i>Scostamento giustificato</span>
+              <span><i class="sw sw-no"></i>Da giustificare</span>
+              <span><i class="sw sw-note"></i>Giustificato</span>
             </span>
-          </div>
-        </div>
-        <div class="g-tools">
-          <span class="muted" style="font-size:.73rem"><i class="bi bi-info-circle"></i> Le due tavole hanno la stessa scala: la barra reale sotto si confronta a vista con quella di contratto sopra.</span>
-          <div class="zoom">
-            <span class="eyebrow">Scala</span>
-            <button class="btn sm ghost" id="zoomOut" aria-label="Riduci la scala temporale"><i class="bi bi-dash-lg"></i></button>
-            <button class="btn sm ghost" id="zoomIn" aria-label="Aumenta la scala temporale"><i class="bi bi-plus-lg"></i></button>
+            <span class="zoom">
+              <button class="btn sm ghost" id="zoomOut" aria-label="Riduci la scala temporale"><i class="bi bi-dash-lg"></i></button>
+              <button class="btn sm ghost" id="zoomIn" aria-label="Aumenta la scala temporale"><i class="bi bi-plus-lg"></i></button>
+            </span>
           </div>
         </div>
         <div class="gscroll" id="gscroll-reale"><div class="gbody" id="gbody-reale"></div></div>

@@ -15,10 +15,10 @@ export function disegnaKpi(A){
   const box = $("kpis"); clear(box);
 
   const kpi = (label, val, note, mod, barra, tacca) => {
-    const c = el("div", "kpi" + (mod ? " is-" + mod : ""));
+    const c = el("div", "kp" + (mod ? " is-" + mod : ""));
     c.appendChild(el("div","k",label));
-    c.appendChild(el("div","n",val));
-    if(note) c.appendChild(el("div","note",note));
+    c.appendChild(el("div","v",val));
+    if(note) c.appendChild(el("div","n",note));
     if(barra != null){
       const m = el("div","meter");
       const i = el("i");
@@ -61,8 +61,8 @@ export function disegnaKpi(A){
   }
 
   $("realeHint").textContent = A.isImpresa()
-    ? "Trascina le barre per spostarle, tira i bordi per allungarle. Ogni barra che non coincide con il contratto resta rossa finché non scrivi il motivo."
-    : "Barre dichiarate dall'impresa. In rosso gli scostamenti dal contratto ancora privi di motivazione.";
+    ? "Trascina le barre, tira i bordi per allungarle."
+    : "Dichiarato dall'impresa.";
 
   const az = $("alertZone"); clear(az);
   if(k.senzaGiust.length){

@@ -8,11 +8,27 @@
    continua: voce a sviluppo continuo (non soggetta a % di avanzamento)
    ========================================================================== */
 
-export const FINE_CONTRATTO = "2026-11-29";
-export const INIZIO_CONTRATTO = "2026-08-01";
+import { addDays, diffDays } from "./util.js";
+
+/* ──────────────────────────────────────────────────────────────────
+   CONSEGNA DEI LAVORI
+   Il cronoprogramma di gara partiva dal 01/08/2026. La consegna
+   effettiva è la seconda settimana di ottobre 2026, cioè lunedì 5:
+   tutte le lavorazioni traslano in blocco di altrettanti giorni,
+   durate e vincoli di precedenza invariati.
+   Per ri-datare l'intera commessa basta cambiare questa riga.
+   ────────────────────────────────────────────────────────────────── */
+export const INIZIO_LAVORI = "2026-10-05";
+
+const INIZIO_GARA = "2026-08-01";
+const TRASLAZIONE = diffDays(INIZIO_LAVORI, INIZIO_GARA);
+
+export const INIZIO_CONTRATTO = INIZIO_LAVORI;
+export const FINE_CONTRATTO = addDays("2026-11-29", TRASLAZIONE);
 export const IMPORTO_LAVORI = 771395.62;
 
-export const BASE = [
+/** Righe come stampate sull'elaborato di gara, prima della traslazione. */
+const BASE_GARA = [
   {n:1,  id:"lotto2",     liv:0, nome:"LOTTO 2 · Asilo",                     durata:121, i:"2026-08-01", f:"2026-11-29", costo:771395.62},
   {n:2,  id:"cat_sic",    liv:1, nome:"Costi Sicurezza",                     durata:121, i:"2026-08-01", f:"2026-11-29", costo:25530.04},
   {n:3,  id:"sic",        liv:2, nome:"Costi Sicurezza",                     durata:121, i:"2026-08-01", f:"2026-11-29", costo:25530.04, foglia:true, continua:true},
@@ -45,6 +61,15 @@ export const BASE = [
   {n:30, id:"os32_strut", liv:2, nome:"Strutture",                           durata:16,  i:"2026-09-01", f:"2026-09-16", costo:149460.13},
   {n:31, id:"xlam",       liv:3, nome:"Xlam",                                durata:16,  i:"2026-09-01", f:"2026-09-16", costo:149460.13, foglia:true}
 ];
+
+/** Le 31 righe con le date effettive della commessa. */
+export const BASE = BASE_GARA.map(r => ({
+  ...r,
+  i: addDays(r.i, TRASLAZIONE),
+  f: addDays(r.f, TRASLAZIONE),
+  iGara: r.i,
+  fGara: r.f
+}));
 
 export const BY_ID = Object.fromEntries(BASE.map(r => [r.id, r]));
 export const FOGLIE = BASE.filter(r => r.foglia);

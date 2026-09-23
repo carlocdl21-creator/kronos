@@ -6,12 +6,18 @@
    finché non viene scritto il motivo dello scostamento.
    ══════════════════════════════════════════════════════════════════ */
 
-import { BASE } from "./baseline.js";
+import { BASE, INIZIO_LAVORI } from "./baseline.js";
 import { calc, intervallo, foglieDi } from "./calcoli.js";
 import { d, iso, addDays, diffDays, fmtD, eur, el, clear } from "./util.js";
 
 const MESI = ["GEN","FEB","MAR","APR","MAG","GIU","LUG","AGO","SET","OTT","NOV","DIC"];
 const DUR_MIN = 1;   // giorni
+
+/** Larghezza della colonna delle attività: serve anche fuori, per calcolare
+ *  quanti pixel al giorno stanno nello spazio rimasto. */
+export function larghezzaEtichette(){
+  return window.innerWidth < 760 ? 186 : 300;
+}
 
 /** Scala temporale condivisa dalle due tavole. */
 export function scala(fasi, oggi){
@@ -49,7 +55,7 @@ export function barraReale(r, fasi, oggi){
 export function disegnaGantt(gbody, o){
   const {modo, fasi, oggi, px, sc} = o;
   const reale = modo === "reale";
-  const LW = window.innerWidth < 760 ? 192 : 306;
+  const LW = larghezzaEtichette();
   const TW = sc.giorni * px;
   gbody.style.setProperty("--lw", LW + "px");
   gbody.style.setProperty("--tw", TW + "px");
@@ -76,8 +82,12 @@ export function disegnaGantt(gbody, o){
       cur = primo > sc.max ? addDays(sc.max, 1) : primo;
     } else cur = addDays(cur, 1);
   }
+  // le settimane si contano dalla consegna dei lavori: S1 è la prima
+  // settimana di cantiere, non il bordo sinistro del disegno
   for(let w = 0; w * 7 < sc.giorni; w++){
-    const wd = el("div","gweek", "S" + (w + 1));
+    const primoGiorno = addDays(sc.min, w * 7);
+    const n = Math.floor(diffDays(primoGiorno, INIZIO_LAVORI) / 7) + 1;
+    const wd = el("div","gweek", n >= 1 ? "S" + n : "");
     wd.style.left = w * 7 * px + "px";
     wd.style.width = 7 * px + "px";
     s.appendChild(wd);
@@ -129,7 +139,6 @@ export function disegnaGantt(gbody, o){
       const fill = el("i","fill");
       fill.style.width = b.av + "%";
       bar.appendChild(fill);
-      if(px >= 6 && (diffDays(b.f, b.i) + 1) * px > 46) bar.appendChild(el("span","pct", b.av + "%"));
 
       const gg = diffDays(b.f, b.i) + 1;
       bar.title = `${r.nome}\nReale: ${fmtD(b.i)} → ${fmtD(b.f)} (${gg} gg) · avanzamento ${b.av}%` +
@@ -142,6 +151,20 @@ export function disegnaGantt(gbody, o){
       }
       tr.appendChild(bar);
 
+      /* percentuale sempre leggibile: dentro la barra se c'è spazio,
+         subito a destra quando la lavorazione è troppo corta */
+      let finePct = x(b.f) + px;
+      if(tracciabile){
+        const largh = Math.max(6, (diffDays(b.f, b.i) + 1) * px);
+        const dentro = largh >= 46;
+        const bolla = el("div", "gpct-bolla" + (dentro ? "" : " fuori") + (b.av ? "" : " zero"), b.av + "%");
+        bolla.style.left = dentro
+          ? (x(b.i) + largh - 40) + "px"
+          : (x(b.f) + px + 5) + "px";
+        if(!dentro) finePct = x(b.f) + px + 5 + 40;
+        tr.appendChild(bolla);
+      }
+
       /* motivo dello scostamento, a fianco della barra */
       if(scostata){
         const chip = el("div", "gnota " + (nota ? "presente" : "manca"));
@@ -151,8 +174,7 @@ export function disegnaGantt(gbody, o){
           ? `Motivo dello scostamento:\n${nota}` + (o.editabile ? "\n\nFai clic per modificare." : "")
           : (o.editabile ? "Scostamento da giustificare: fai clic per scrivere il motivo."
                          : "Scostamento non ancora giustificato dall'impresa.");
-        const fine = x(b.f) + (diffDays(b.f, b.i) + 1 > 0 ? px : 0) + 10;
-        chip.style.left = Math.min(fine, Math.max(0, TW - 292)) + "px";
+        chip.style.left = Math.min(finePct + 8, Math.max(0, TW - 292)) + "px";
         if(o.editabile) chip.addEventListener("click", () => o.onNota(r));
         else chip.dataset.solaLettura = "1";
         tr.appendChild(chip);

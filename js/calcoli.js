@@ -3,7 +3,7 @@
    scostamenti in giorni, avanzamento atteso, avanzamento economico pesato.
    ========================================================================== */
 
-import { BASE, TRACCIATE, COSTO_TRACCIATO, FINE_CONTRATTO } from "./baseline.js";
+import { BASE, TRACCIATE, COSTO_TRACCIATO, FINE_CONTRATTO, INIZIO_CONTRATTO } from "./baseline.js";
 import { diffDays } from "./util.js";
 
 /**
@@ -96,7 +96,7 @@ export function riepilogo(fasi, oggi){
 
 /** Intervallo temporale da rappresentare nel diagramma. */
 export function intervallo(fasi, oggi){
-  let min = "2026-08-01", max = FINE_CONTRATTO;
+  let min = INIZIO_CONTRATTO, max = FINE_CONTRATTO;
   for(const r of BASE){ if(r.i < min) min = r.i; if(r.f > max) max = r.f; }
   for(const r of TRACCIATE){
     const c = calc(r, fasi[r.id] || {}, oggi);

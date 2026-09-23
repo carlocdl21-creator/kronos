@@ -23,7 +23,7 @@
   --sh-3:0 12px 32px rgba(10,10,10,.10);
   --ease:cubic-bezier(.22,.61,.36,1);
 
-  --bar-h:16px;
+  --bar-h:18px;
   color-scheme:light;
 }
 
@@ -123,7 +123,7 @@ a{color:var(--ink);text-underline-offset:2px}
 .tab[aria-selected="true"] .cnt{background:#3f3f46;border-color:#52525b;color:#fafafa}
 
 /* ───────────────────────────── pagina ───────────────────────────── */
-.page{max-width:1360px;margin:0 auto;padding:22px 20px 72px}
+.page{max-width:1360px;margin:0 auto;padding:14px 20px 56px}
 .adm-top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}
 .adm-top-tit{min-width:0}
 .eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:.66rem;font-weight:800;
@@ -151,8 +151,8 @@ a{color:var(--ink);text-underline-offset:2px}
 
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-1)}
 .card + .card{margin-top:16px}
-.card-hd{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--line)}
-.card-hd h2{font-size:1rem;font-weight:700;letter-spacing:-.2px}
+.card-hd{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--line)}
+.card-hd h2{font-size:.94rem;font-weight:700;letter-spacing:-.2px}
 .card-hd .sub{font-size:.76rem;color:var(--mute);flex:1 1 200px}
 .card-hd .act{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .card-bd{padding:18px}
@@ -178,31 +178,29 @@ textarea{resize:vertical;min-height:84px;line-height:1.55}
 .pill.ink{background:var(--ink);color:#fafafa;border-color:var(--ink)}
 .pill.neutral{background:var(--surface-3);color:var(--mute);border-color:var(--line-2)}
 
-/* ───────────────────────────── cartiglio ───────────────────────────── */
-.cartiglio{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;
-  background:var(--line);border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--line)}
-.cart-cell{background:var(--surface);padding:12px 16px}
-.cart-cell .k{font-size:.64rem;font-weight:800;color:var(--mute);text-transform:uppercase;letter-spacing:.11em}
-.cart-cell .v{font-size:.86rem;font-weight:600;margin-top:3px;color:var(--ink-2)}
+/* ─────────────── striscia commessa + indicatori (una riga) ─────────────── */
+.striscia{display:flex;align-items:center;gap:12px 16px;flex-wrap:wrap;background:var(--surface);
+  border:1px solid var(--line);border-radius:var(--r-md);padding:8px 14px;box-shadow:var(--sh-1)}
+.st-tit{display:inline-flex;align-items:center;gap:7px;font-size:.92rem;font-weight:700;letter-spacing:-.2px}
+.st-tit i{font-size:1rem}
+.st-dati{display:flex;gap:4px 14px;flex-wrap:wrap;font-size:.74rem;color:var(--mute);min-width:0}
+.st-dati b{color:var(--ink-2);font-weight:600}
+.striscia .btn{margin-left:auto}
+.st-agg{font-size:.72rem;color:var(--mute);margin:7px 2px 10px}
 
-/* ───────────────────────────── KPI ───────────────────────────── */
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px}
-.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
-  padding:15px 17px;box-shadow:var(--sh-1);position:relative;overflow:hidden}
-.kpi .k{font-size:.64rem;font-weight:800;color:var(--mute);text-transform:uppercase;letter-spacing:.11em}
-.kpi .n{font-size:1.7rem;font-weight:800;letter-spacing:-1px;margin-top:4px;color:var(--ink)}
-.kpi .note{font-size:.73rem;color:var(--mute);margin-top:2px}
-.kpi.is-no .n{color:var(--no)} .kpi.is-warn .n{color:var(--warn)} .kpi.is-ok .n{color:var(--ok)}
-.meter{height:5px;background:var(--surface-3);border-radius:999px;margin-top:10px;position:relative}
+.kpibar{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));background:var(--surface);
+  border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;box-shadow:var(--sh-1);margin-bottom:12px}
+.kp{padding:9px 14px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:1px;min-width:0}
+.kp:last-child{border-right:none}
+.kp .k{font-size:.6rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+.kp .v{font-size:1.06rem;font-weight:800;letter-spacing:-.5px;line-height:1.25}
+.kp .n{font-size:.68rem;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kp.is-no .v{color:var(--no)} .kp.is-warn .v{color:var(--warn)} .kp.is-ok .v{color:var(--ok)}
+.kp .meter{height:4px;margin-top:6px}
+
+.meter{height:5px;background:var(--surface-3);border-radius:999px;position:relative}
 .meter > i{display:block;height:100%;background:var(--ink);border-radius:999px}
 .meter .tick{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--mute-2);border-radius:2px}
-
-.notice{display:flex;gap:10px;align-items:flex-start;padding:12px 15px;border-radius:var(--r-md);
-  font-size:.8rem;margin-bottom:14px;border:1px solid}
-.notice i{font-size:1rem;flex:none;margin-top:1px}
-.notice.no{background:var(--no-bg);border-color:var(--no-line);color:var(--no)}
-.notice.warn{background:var(--warn-bg);border-color:var(--warn-line);color:var(--warn)}
-.notice b{font-weight:700}
 
 /* ══════════════════════════════════════════════════════════════════
    GANTT — due diagrammi identici: contrattuale e reale
@@ -246,29 +244,41 @@ textarea{resize:vertical;min-height:84px;line-height:1.55}
 /* barre */
 .gbar{
   position:absolute;top:calc(50% - var(--bar-h)/2);height:var(--bar-h);border-radius:5px;
-  background:#3f3f46;overflow:hidden;
+  background:#52525b;overflow:hidden;
 }
 .grow[data-liv="0"] .gbar,.grow[data-liv="1"] .gbar,.grow[data-liv="2"] .gbar{
-  height:9px;top:calc(50% - 4.5px);background:var(--mute-2);border-radius:3px
+  height:8px;top:calc(50% - 4px);background:var(--mute-2);border-radius:3px;border:none
 }
-.gbar > .fill{position:absolute;inset:0;width:0;background:var(--ink);border-radius:5px 0 0 5px}
-.gbar > .pct{position:absolute;right:6px;top:0;bottom:0;display:flex;align-items:center;
-  font-size:.6rem;font-weight:800;color:#fafafa;letter-spacing:.02em}
+.gbar > .fill{position:absolute;inset:0 auto 0 0;width:0;background:var(--ink-3)}
 
-/* barra reale modificabile */
-.gbar.real{background:#3f3f46;cursor:default}
+/* barra reale: binario chiaro + riempimento = avanzamento, sempre leggibile */
+.gbar.real{
+  background:var(--surface-3);border:1.5px solid var(--ink-3);cursor:default;
+}
+.grow[data-liv="0"] .gbar.real,.grow[data-liv="1"] .gbar.real,.grow[data-liv="2"] .gbar.real{
+  background:var(--surface-3);border:1px solid var(--mute-2)
+}
 .gbar.real.editabile{cursor:grab}
 .gbar.real.editabile:active{cursor:grabbing}
-.gbar.real.scostata{background:var(--no)}
-.gbar.real.scostata > .fill{background:#7f1d1d}
-.gbar.real.giustificata{background:#3f3f46;box-shadow:inset 0 0 0 2px var(--warn-line)}
-.gbar.real.vuota{background:repeating-linear-gradient(45deg,#e4e4e7 0 4px,#f4f4f5 4px 8px);
-  box-shadow:inset 0 0 0 1px var(--line-2)}
-.gbar.real.vuota > .pct{color:var(--mute)}
+.gbar.real.scostata{border-color:var(--no)}
+.gbar.real.scostata > .fill{background:var(--no)}
+.gbar.real.giustificata{border-color:var(--warn)}
+.gbar.real.vuota{background:var(--surface-3);border-style:dashed;border-color:var(--mute-2)}
+
+/* percentuale: pastiglia bianca sopra la barra, oppure subito a destra se stretta */
+.gpct-bolla{
+  position:absolute;top:calc(50% - 8px);height:16px;display:inline-flex;align-items:center;
+  padding:0 5px;border-radius:5px;font-size:.63rem;font-weight:800;letter-spacing:.01em;
+  background:rgba(255,255,255,.93);color:var(--ink);border:1px solid var(--line-2);
+}
+.gpct-bolla.fuori{background:var(--surface);border-color:var(--line-2);color:var(--ink-3)}
+.gpct-bolla.zero{color:var(--mute)}
+.gbar.real.scostata ~ .gpct-bolla{color:var(--no);border-color:var(--no-line)}
+
 .gmaniglia{position:absolute;top:0;bottom:0;width:8px;cursor:ew-resize;z-index:2}
-.gmaniglia.sx{left:0;border-radius:5px 0 0 5px}
-.gmaniglia.dx{right:0;border-radius:0 5px 5px 0}
-.gbar.real.editabile .gmaniglia:hover{background:rgba(255,255,255,.35)}
+.gmaniglia.sx{left:0;border-radius:4px 0 0 4px}
+.gmaniglia.dx{right:0;border-radius:0 4px 4px 0}
+.gbar.real.editabile .gmaniglia:hover{background:rgba(10,10,10,.12)}
 .gdrag-info{
   position:absolute;z-index:20;background:var(--ink);color:#fafafa;font-size:.68rem;font-weight:700;
   padding:4px 9px;border-radius:6px;white-space:nowrap;pointer-events:none;box-shadow:var(--sh-2);
@@ -288,10 +298,12 @@ textarea{resize:vertical;min-height:84px;line-height:1.55}
 .gnota:hover{box-shadow:var(--sh-1)}
 
 /* campo % nella colonna etichette del reale */
-.gpct{margin-left:auto;display:flex;align-items:center;gap:3px;flex:none}
-.gpct input{width:48px;padding:3px 5px;font-size:.72rem;text-align:right;border-radius:6px;border-width:1px}
-.gpct span{font-size:.7rem;color:var(--mute);font-weight:600}
-.gpct-ro{margin-left:auto;font-size:.72rem;font-weight:700;color:var(--ink-3)}
+.gpct{margin-left:auto;display:flex;align-items:center;gap:2px;flex:none}
+.gpct input{width:44px;padding:3px 4px;font-size:.78rem;font-weight:700;text-align:right;
+  border-radius:6px;border-width:1px;background:var(--surface-3)}
+.gpct span{font-size:.72rem;color:var(--mute);font-weight:700}
+.gpct-ro{margin-left:auto;font-size:.8rem;font-weight:800;color:var(--ink-2);
+  background:var(--surface-3);border-radius:6px;padding:2px 7px}
 
 /* ══════════════════════════════════════════════════════════════════
    CARTELLE (foto)
