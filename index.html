@@ -7,7 +7,7 @@
 <meta name="description" content="Applicativo di programmazione e controllo della commessa: cronoprogramma contrattuale a confronto con l'avanzamento reale, documentazione fotografica, bolle di consegna, presenze di cantiere e richieste.">
 <meta name="theme-color" content="#0a0a0a">
 <link rel="icon" href="assets/favicon.ico" sizes="any">
-<link rel="icon" href="assets/hanzo-512.png" type="image/png">
+<link rel="icon" href="assets/icona-512.png" type="image/png">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="assets/icona-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -23,27 +23,69 @@
 
 <!-- ═══════════════════════ ACCESSO ═══════════════════════ -->
 <div id="login" class="login" hidden>
-  <div class="login-card">
-    <div class="brand">
-      <div class="brand-glyph"><img src="assets/hanzo-512.png" alt="" width="512" height="512"></div>
-      <i class="bi bi-clock-history brand-orologio" aria-hidden="true"></i>
-      <div class="brand-txt">
-        <div class="brand-name">KRONOS</div>
-        <small class="brand-by">by Hanzo</small>
+  <div class="lg-split">
+
+    <aside class="lg-visual">
+      <div class="lg-top">
+        <div class="lg-brand">
+          <span class="lg-brand-mark"><i class="bi bi-clock-history"></i></span>
+          <div>
+            <div class="lg-brand-name">KRONOS</div>
+            <small class="lg-brand-by">by Hanzo</small>
+          </div>
+        </div>
+        <span class="lg-status"><span class="dot"></span> Commessa in corso</span>
       </div>
-    </div>
 
-    <div class="login-commessa">
-      <span class="eyebrow">Commessa 3613</span>
-      Costruzione Nuovo Asilo Nido Comunale — Comune di Marcaria (MN)
-    </div>
+      <div class="lg-mid">
+        <span class="lg-pill">Commessa 3613</span>
+        <h1 class="lg-head">Nuovo Asilo Nido<br><span class="muted">Comune di Marcaria</span></h1>
+        <p class="lg-sub">Cronoprogramma contrattuale e avanzamento reale a confronto, foto delle lavorazioni, bolle dei materiali e operai presenti in cantiere. Aggiornato settimana per settimana.</p>
 
-    <div class="segm larga" id="accessoSwitch">
-      <button type="button" data-modo="accedi" class="on">Accedi</button>
-      <button type="button" data-modo="registrati">Registrati</button>
-    </div>
+        <div class="lg-cards">
+          <div class="lg-card">
+            <span class="lg-card-ico"><i class="bi bi-flag-fill"></i></span>
+            <div class="lg-card-body">
+              <div class="lg-card-val">05/10/2026</div>
+              <div class="lg-card-sub">Consegna dei lavori</div>
+            </div>
+            <span class="lg-badge lg-badge--mono">121 giorni</span>
+          </div>
+          <div class="lg-card">
+            <span class="lg-card-ico"><i class="bi bi-bar-chart-steps"></i></span>
+            <div class="lg-card-body">
+              <div class="lg-card-val">28 lavorazioni</div>
+              <div class="lg-card-sub">Articolazione dell'opera, dalle fondazioni agli impianti</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    <form id="loginForm" class="login-form" autocomplete="on">
+      <div class="lg-foot">
+        <span>Artedile · Enenso</span>
+        <span>Raggruppamento temporaneo di imprese</span>
+      </div>
+    </aside>
+
+    <main class="lg-form">
+      <div class="lg-form-inner">
+        <div class="lg-marchio-stretto">
+          <span class="lg-brand-mark"><i class="bi bi-clock-history"></i></span>
+          <div>
+            <div class="lg-brand-name">KRONOS</div>
+            <small class="lg-brand-by">by Hanzo</small>
+          </div>
+        </div>
+        <div class="lg-eyebrow">Accesso riservato</div>
+        <h3>Entra nel cantiere</h3>
+        <p class="lg-form-sub">Chi è già registrato entra con email e password. Chi entra la prima volta usa il codice della propria parte.</p>
+
+        <div class="segm larga" id="accessoSwitch">
+          <button type="button" data-modo="accedi" class="on">Accedi</button>
+          <button type="button" data-modo="registrati">Registrati</button>
+        </div>
+
+<form id="loginForm" class="login-form" autocomplete="on">
       <label class="field"><span>Indirizzo email</span>
         <input type="email" id="logEmail" required autocomplete="username" placeholder="nome@dominio.it"></label>
       <label class="field"><span>Password</span>
@@ -52,7 +94,7 @@
       <button class="btn primary" id="logBtn" type="submit" style="justify-content:center;padding:11px">Accedi</button>
     </form>
 
-    <form id="regForm" class="login-form" autocomplete="on" hidden>
+<form id="regForm" class="login-form" autocomplete="on" hidden>
       <label class="field"><span>Nome e cognome</span>
         <input type="text" id="regNome" required autocomplete="name" placeholder="Mario Rossi"></label>
       <label class="field"><span>Indirizzo email</span>
@@ -68,14 +110,14 @@
       <button class="btn primary" id="regBtn" type="submit" style="justify-content:center;padding:11px">Richiedi l'accesso</button>
     </form>
 
-    <div id="attesaBox" class="login-attesa" hidden>
+<div id="attesaBox" class="login-attesa" hidden>
       <i class="bi bi-hourglass-split"></i>
       <b>Richiesta inviata</b>
       <p id="attesaTesto">L'utenza è stata creata e attende l'abilitazione del responsabile della commessa. Riceverai accesso appena sarà approvata.</p>
       <button class="btn" id="attesaEsci">Esci</button>
     </div>
 
-    <div id="demoBox" class="login-demo" hidden>
+<div id="demoBox" class="login-demo" hidden>
       <span class="eyebrow">Modalità dimostrativa</span>
       <p>Il collegamento all'archivio condiviso non è configurato. È possibile provare l'applicativo in locale: i dati restano su questo dispositivo e non vengono condivisi.</p>
       <div class="login-demo-btns">
@@ -84,15 +126,18 @@
       </div>
     </div>
 
-    <div class="login-marchi">
-      <span class="eyebrow">Raggruppamento di imprese</span>
-      <span class="marchi" role="img" aria-label="Raggruppamento temporaneo di imprese: Artedile e Enenso">
-        <span class="m3d"><img src="assets/artedile.png" alt="Artedile" width="132" height="72"></span>
-        <span class="m3d enenso"><img src="assets/enenso.png" alt="Enenso — Power generation &amp; facility management" width="640" height="157"></span>
-      </span>
-    </div>
+        <div class="login-marchi">
+          <span class="eyebrow">Raggruppamento di imprese</span>
+          <span class="marchi" role="img" aria-label="Artedile e Enenso">
+            <span class="m3d"><img src="assets/artedile.png" alt="Artedile" width="132" height="72"></span>
+            <span class="m3d enenso"><img src="assets/enenso.png" alt="Enenso" width="640" height="157"></span>
+          </span>
+        </div>
 
-    <p class="login-foot">Accesso riservato ai soggetti autorizzati della commessa. Le credenziali sono rilasciate dal responsabile dell'applicativo.</p>
+        <p class="login-foot">Le credenziali e i codici sono rilasciati dal responsabile della commessa.</p>
+      </div>
+    </main>
+
   </div>
 </div>
 
@@ -108,8 +153,7 @@
     </div>
     <div class="topbar-in">
       <div class="brand">
-        <div class="brand-glyph"><img src="assets/hanzo-512.png" alt="" width="512" height="512"></div>
-      <i class="bi bi-clock-history brand-orologio" aria-hidden="true"></i>
+        <div class="brand-glyph"><i class="bi bi-clock-history"></i></div>
         <div class="brand-txt">
           <div class="brand-name">KRONOS</div>
           <small class="brand-by">by Hanzo</small>

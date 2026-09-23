@@ -52,30 +52,77 @@ a{color:var(--ink);text-underline-offset:2px}
   width:34px;height:34px;flex:none;border-radius:9px;background:var(--ink);
   display:grid;place-items:center;overflow:hidden;
 }
-.brand-glyph img{width:80%;height:80%;object-fit:contain}
-/* l'orologio resta di fianco: dice di che cosa si occupa l'applicativo */
-.brand-orologio{font-size:1.05rem;color:var(--mute);flex:none;margin:0 -2px 0 -3px}
+.brand-glyph i{color:#fff;font-size:.95rem}
 .brand-txt{line-height:1}
 .brand-name{font-size:1.12rem;font-weight:800;letter-spacing:.13em;color:var(--ink)}
 .brand-by{
-  display:block;margin-top:2px;font-size:.53rem;font-weight:800;
-  letter-spacing:.24em;color:var(--mute);text-transform:uppercase;
+  display:block;margin-top:3px;font-size:.62rem;font-weight:800;
+  letter-spacing:.2em;color:var(--ink-3);text-transform:uppercase;
 }
 
-/* ───────────────────────────── accesso ───────────────────────────── */
-.login{min-height:100vh;display:grid;place-items:center;padding:24px 16px;background:var(--surface-2)}
-.login-card{
-  width:100%;max-width:440px;background:var(--surface);border:1px solid var(--line);
-  border-radius:var(--r-xl);box-shadow:var(--sh-2);padding:30px 28px 22px;
-}
-.login-card .brand{margin-bottom:22px}
-.login-card .brand-glyph{width:40px;height:40px;border-radius:11px}
-.login-card .brand-orologio{font-size:1.2rem}
-.login-commessa{
-  background:var(--surface-3);border-radius:var(--r-md);padding:12px 14px;margin-bottom:20px;
-  font-size:.82rem;color:var(--ink-3);
-}
-.login-commessa .eyebrow{display:block;margin-bottom:3px}
+/* ─────────────── accesso: schermo diviso, come il login di HANZO ─────────────── */
+.login{min-height:100vh;background:var(--surface)}
+.lg-split{min-height:100vh;display:grid;grid-template-columns:1.05fr .95fr}
+
+/* pannello scuro */
+.lg-visual{position:relative;overflow:hidden;background:#0a0a0a;color:#fff;
+  padding:48px 54px;display:flex;flex-direction:column;justify-content:space-between}
+.lg-visual::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+  background-size:48px 48px}
+/* il marchio HANZO grande, dietro tutto */
+.lg-visual::after{content:"";position:absolute;right:-70px;bottom:-90px;
+  width:460px;height:460px;opacity:.05;pointer-events:none;
+  background:url("../assets/hanzo-bianco.png") no-repeat center / contain}
+.lg-visual > *{position:relative;z-index:2}
+
+.lg-top{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.lg-brand{display:flex;align-items:center;gap:13px}
+.lg-brand-mark{width:46px;height:46px;border-radius:13px;flex:none;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  display:grid;place-items:center;font-size:1.3rem;color:#fff}
+.lg-brand-name{font-size:1.25rem;font-weight:800;letter-spacing:.18em;line-height:1}
+.lg-brand-by{display:block;margin-top:4px;font-size:.58rem;font-weight:800;
+  letter-spacing:.24em;text-transform:uppercase;color:#8a8a8a}
+.lg-status{display:inline-flex;align-items:center;gap:7px;font-size:.68rem;font-weight:700;
+  letter-spacing:.14em;color:#a3a3a3;text-transform:uppercase}
+.lg-status .dot{width:8px;height:8px;border-radius:50%;background:#22c55e;
+  box-shadow:0 0 0 0 rgba(34,197,94,.5);animation:lgPulse 2.2s infinite}
+@keyframes lgPulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}70%{box-shadow:0 0 0 8px rgba(34,197,94,0)}}
+
+.lg-mid{margin:auto 0}
+.lg-pill{display:inline-flex;align-items:center;gap:8px;font-size:.66rem;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:#d4d4d4;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);
+  padding:7px 15px;border-radius:100px;margin-bottom:26px}
+.lg-head{font-size:3.05rem;font-weight:800;line-height:1.04;letter-spacing:-1.8px;margin:0}
+.lg-head .muted{color:#6b6b6b}
+.lg-sub{color:#b4b4b4;font-size:1rem;line-height:1.6;margin:20px 0 30px;max-width:470px}
+
+.lg-cards{display:flex;flex-direction:column;gap:12px;max-width:480px}
+.lg-card{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:15px 17px}
+.lg-card-ico{width:42px;height:42px;border-radius:11px;flex:none;background:rgba(255,255,255,.92);
+  color:#0a0a0a;display:grid;place-items:center;font-size:1.15rem}
+.lg-card-body{flex:1;min-width:0}
+.lg-card-val{font-size:1.3rem;font-weight:800;letter-spacing:-.5px;line-height:1.1}
+.lg-card-sub{font-size:.75rem;color:#8a8a8a;margin-top:3px}
+.lg-badge{font-size:.72rem;font-weight:700;padding:5px 10px;border-radius:8px;flex:none;
+  background:rgba(255,255,255,.07);color:#d4d4d4;letter-spacing:.03em}
+
+.lg-foot{display:flex;gap:22px;flex-wrap:wrap;font-size:.74rem;color:#7a7a7a}
+.lg-foot span{display:inline-flex;align-items:center;gap:7px}
+.lg-foot span::before{content:"";width:5px;height:5px;border-radius:50%;background:#4a4a4a}
+
+/* pannello del modulo */
+.lg-form{background:var(--surface);display:flex;align-items:center;justify-content:center;padding:40px 48px}
+.lg-form-inner{width:100%;max-width:420px}
+.lg-eyebrow{font-size:.7rem;font-weight:700;letter-spacing:.18em;color:var(--mute-2);
+  text-transform:uppercase;margin-bottom:10px}
+.lg-form-inner h3{font-size:2rem;font-weight:800;letter-spacing:-.8px;margin:0 0 8px;color:var(--ink)}
+.lg-form-sub{color:var(--mute);font-size:.88rem;margin:0 0 24px;line-height:1.55}
+
 .login-form{display:flex;flex-direction:column;gap:14px}
 .login-err{background:var(--no-bg);color:var(--no);border:1px solid var(--no-line);
   padding:9px 12px;font-size:.8rem;border-radius:var(--r-sm)}
@@ -83,7 +130,22 @@ a{color:var(--ink);text-underline-offset:2px}
 .login-demo p{font-size:.78rem;color:var(--mute);margin:6px 0 12px}
 .login-demo-btns{display:flex;flex-direction:column;gap:8px}
 .login-demo-btns .btn{justify-content:center}
-.login-foot{margin-top:20px;font-size:.7rem;color:var(--mute-2);line-height:1.6}
+.login-foot{margin-top:18px;font-size:.7rem;color:var(--mute-2);line-height:1.5}
+
+/* il marchio compare solo dove il pannello scuro non c'è */
+.lg-marchio-stretto{display:none;align-items:center;gap:12px;margin-bottom:26px}
+.lg-marchio-stretto .lg-brand-mark{background:var(--ink);border-color:var(--ink);color:#fff}
+.lg-marchio-stretto .lg-brand-name{color:var(--ink)}
+.lg-marchio-stretto .lg-brand-by{color:var(--mute)}
+
+@media (max-width:980px){
+  .lg-split{grid-template-columns:1fr}
+  .lg-visual{display:none}
+  .lg-form{padding:28px 20px;align-items:flex-start}
+  .lg-form-inner{padding-top:10px}
+  .lg-marchio-stretto{display:flex}
+  .lg-form-inner h3{font-size:1.7rem}
+}
 
 /* ───────────────────────────── testata ───────────────────────────── */
 .topbar{position:sticky;top:0;z-index:30;background:var(--surface);border-bottom:1px solid var(--line)}
