@@ -17,7 +17,7 @@ export function disegnaKpi(A){
   const gg = k.ultimoAgg ? Math.floor((Date.now() - new Date(k.ultimoAgg).getTime()) / MS) : null;
   const vecchio = gg === null || gg > 7;
   lu.className = "st-agg" + (vecchio ? " scaduto" : "");
-  lu.appendChild(el("span","punto"));
+  lu.appendChild(el("i", "bi " + (vecchio ? "bi-exclamation-triangle-fill" : "bi-check-circle-fill")));
   lu.appendChild(el("span", null, k.ultimoAgg
     ? `aggiornato ${gg === 0 ? "oggi" : gg === 1 ? "ieri" : gg + " giorni fa"}`
     : "mai aggiornato"));

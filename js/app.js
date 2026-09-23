@@ -464,13 +464,13 @@ try{
   const v = localStorage.getItem("kronos.vista");
   if(v === "unico" || v === "doppio") A.vista = v;
 }catch(e){}
-for(const [icona, titolo, valore] of [
-  ["bi-geo-alt",        "Comune",           "Marcaria (MN)"],
-  ["bi-upc-scan",       "CUP",              "E75E26000030004"],
-  ["bi-calendar-check", "Consegna lavori",  fmtD(INIZIO_CONTRATTO)],
-  ["bi-hourglass-split","Durata contrattuale", "121 giorni"]
+for(const [tinta, icona, titolo, valore] of [
+  ["c-luogo",  "bi-geo-alt-fill",     "Luogo dei lavori",    "Marcaria (MN)"],
+  ["c-cup",    "bi-hash",             "CUP",                 "E75E26000030004"],
+  ["c-avvio",  "bi-flag-fill",        "Consegna dei lavori", fmtD(INIZIO_CONTRATTO)],
+  ["c-durata", "bi-hourglass-split",  "Durata contrattuale", "121 giorni"]
 ]){
-  const c = el("span","st-chip");
+  const c = el("span","st-chip " + tinta);
   c.title = titolo;
   c.appendChild(el("i","bi " + icona));
   c.appendChild(el("span", null, valore));
