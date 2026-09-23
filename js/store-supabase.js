@@ -183,12 +183,23 @@ export function creaStoreSupabase(){
     },
 
     /* ----------------- cronoprogramma ----------------- */
-    async salvaFase(id, b){
-      const { error } = await sb.from("fasi").upsert({
-        id, inizio:b.inizio, fine:b.fine, avanz:b.avanz,
-        giust:b.giust, giust_data:b.giustData,
-        aggiornato_il:new Date().toISOString(), aggiornato_da:this.utente.id
-      });
+    /* Manda SOLO i campi cambiati. Mandare tutta la riga significherebbe
+       rispedire anche i valori che si avevano in memoria, cancellando quelli
+       che nel frattempo ha scritto un collega. */
+    async salvaFase(id, patch){
+      const riga = {
+        id,
+        aggiornato_il: new Date().toISOString(),
+        aggiornato_da: this.utente.id
+      };
+      if("inizio" in patch) riga.inizio = patch.inizio;
+      if("fine"   in patch) riga.fine   = patch.fine;
+      if("avanz"  in patch) riga.avanz  = patch.avanz;
+      if("giust"  in patch){
+        riga.giust = patch.giust;
+        riga.giust_data = patch.giustData ?? null;
+      }
+      const { error } = await sb.from("fasi").upsert(riga);
       if(error) throw error;
     },
 

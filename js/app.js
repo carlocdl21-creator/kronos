@@ -85,10 +85,17 @@ async function entraNellApp(){
   catch(e){ toast(errMsg(e)); }
 
   controllaUtenze();
+  segnalaCoda();
+  svuotaCoda().catch(() => {});
   A.store.onCambio(() => { ricarica().catch(() => {}); });
   clearInterval(A._poll);
-  A._poll = setInterval(() => { if(!document.hidden) ricarica().catch(() => {}); },
-                        Math.max(15, CONFIG.POLL_SECONDI) * 1000);
+  A._poll = setInterval(() => {
+    if(document.hidden) return;
+    svuotaCoda().catch(() => {});
+    ricarica().catch(() => {});
+  }, Math.max(15, CONFIG.POLL_SECONDI) * 1000);
+  // appena il dispositivo ritrova la linea, si riprova subito
+  window.addEventListener("online", () => svuotaCoda(false).catch(() => {}));
 }
 
 function mostraErroreLogin(msg){ mostraErrore("logErr", msg); }
@@ -276,6 +283,12 @@ $("btnRefresh").addEventListener("click", async () => {
 
 async function ricarica(){
   A.dati = await A.store.carica();
+  // quello che non è ancora arrivato all'archivio resta in primo piano:
+  // altrimenti un ricaricamento cancellerebbe dallo schermo un valore scritto
+  const coda = leggiCoda();
+  for(const id of Object.keys(coda)){
+    A.dati.fasi[id] = {...(A.dati.fasi[id] || {}), ...coda[id]};
+  }
   render();
 }
 
@@ -364,31 +377,90 @@ function cambiaDate(id, inizio, fine){
   salvaFase(id, {inizio, fine});
 }
 
+/* ─────────────────────────────────────────────────────────────────────
+   Gli avanzamenti dichiarati non si perdono mai.
+   Se la rete manca, il valore resta in coda su questo dispositivo e
+   riparte da solo: non viene MAI cancellato dal ricaricamento.
+   ───────────────────────────────────────────────────────────────────── */
+const CHIAVE_CODA = "kronos.coda-avanzamenti";
+
+function leggiCoda(){
+  try{ return JSON.parse(localStorage.getItem(CHIAVE_CODA) || "{}"); }
+  catch(e){ return {}; }
+}
+function scriviCoda(c){
+  try{ localStorage.setItem(CHIAVE_CODA, JSON.stringify(c)); }catch(e){}
+  segnalaCoda();
+}
+function accoda(id, patch){
+  const c = leggiCoda();
+  c[id] = {...(c[id] || {}), ...patch};
+  scriviCoda(c);
+}
+function togliDallaCoda(id){
+  const c = leggiCoda();
+  if(c[id]){ delete c[id]; scriviCoda(c); }
+}
+function segnalaCoda(){
+  const n = Object.keys(leggiCoda()).length;
+  const spia = $("codaSpia");
+  if(!spia) return;
+  spia.hidden = n === 0;
+  if(n){
+    spia.textContent = n === 1 ? "1 avanzamento da inviare" : `${n} avanzamenti da inviare`;
+    spia.title = "Scritti ma non ancora arrivati all'archivio: partono da soli appena torna la rete.";
+  }
+}
+
+/** Riprova a mandare quello che era rimasto indietro. */
+async function svuotaCoda(silenzioso = true){
+  const c = leggiCoda();
+  const ids = Object.keys(c);
+  if(!ids.length || !A.store?.utente || !A.isImpresa()) return;
+  let mandati = 0;
+  for(const id of ids){
+    try{
+      await A.store.salvaFase(id, c[id]);
+      togliDallaCoda(id);
+      mandati++;
+    }catch(e){
+      break;                    // ancora senza rete: si riprova più tardi
+    }
+  }
+  if(mandati){
+    await ricarica();
+    if(!silenzioso || mandati) toast(`${mandati} ${mandati === 1 ? "avanzamento inviato" : "avanzamenti inviati"}.`);
+  }
+}
+
 async function salvaFase(id, patch){
   if(!A.isImpresa()){ toast("Solo l'impresa esecutrice può modificare il cronoprogramma."); return; }
-  const cur = A.dati.fasi[id] || {};
-  const body = {
-    inizio: cur.inizio || null,
-    fine: cur.fine || null,
-    avanz: typeof cur.avanz === "number" ? cur.avanz : 0,
-    giust: cur.giust || "",
-    giustData: cur.giustData || null,
-    ...patch
-  };
-  if("giust" in patch) body.giustData = patch.giust ? new Date().toISOString() : null;
-  if(body.inizio && body.fine && body.fine < body.inizio){
+
+  const prima = A.dati.fasi[id] || {};
+  const dopo = {...prima, ...patch};
+  if("giust" in patch) dopo.giustData = patch.giust ? new Date().toISOString() : null;
+
+  if(dopo.inizio && dopo.fine && dopo.fine < dopo.inizio){
     toast("La data di fine non può precedere quella di inizio.");
     render();
     return;
   }
-  A.dati.fasi[id] = {...body, aggiornatoIl:new Date().toISOString(), autore:A.store.utente?.nome};
+
+  // si vede subito, prima ancora di sapere se la rete c'è
+  A.dati.fasi[id] = {...dopo, aggiornatoIl:new Date().toISOString(), autore:A.store.utente?.nome};
   render();
+
+  const daMandare = {...patch};
+  if("giust" in patch) daMandare.giustData = dopo.giustData;
+
   try{
-    await A.store.salvaFase(id, body);
+    await A.store.salvaFase(id, daMandare);
+    togliDallaCoda(id);
     await ricarica();
   }catch(e){
-    toast(errMsg(e));
-    await ricarica();
+    // niente ricarica: cancellerebbe dallo schermo quello appena scritto
+    accoda(id, daMandare);
+    toast("Senza rete: l'avanzamento è salvato qui e parte appena torna la linea.");
   }
 }
 

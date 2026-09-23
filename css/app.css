@@ -49,9 +49,12 @@ a{color:var(--ink);text-underline-offset:2px}
 /* ───────────────────────────── marchio ───────────────────────────── */
 .brand{display:flex;align-items:center;gap:9px;flex:0 0 auto}
 .brand-glyph{
-  width:32px;height:32px;flex:none;border-radius:9px;background:var(--ink);
-  display:grid;place-items:center;color:#fff;font-size:.92rem;
+  width:34px;height:34px;flex:none;border-radius:9px;background:var(--ink);
+  display:grid;place-items:center;overflow:hidden;
 }
+.brand-glyph img{width:80%;height:80%;object-fit:contain}
+/* l'orologio resta di fianco: dice di che cosa si occupa l'applicativo */
+.brand-orologio{font-size:1.05rem;color:var(--mute);flex:none;margin:0 -2px 0 -3px}
 .brand-txt{line-height:1}
 .brand-name{font-size:1.12rem;font-weight:800;letter-spacing:.13em;color:var(--ink)}
 .brand-by{
@@ -66,6 +69,8 @@ a{color:var(--ink);text-underline-offset:2px}
   border-radius:var(--r-xl);box-shadow:var(--sh-2);padding:30px 28px 22px;
 }
 .login-card .brand{margin-bottom:22px}
+.login-card .brand-glyph{width:40px;height:40px;border-radius:11px}
+.login-card .brand-orologio{font-size:1.2rem}
 .login-commessa{
   background:var(--surface-3);border-radius:var(--r-md);padding:12px 14px;margin-bottom:20px;
   font-size:.82rem;color:var(--ink-3);
@@ -612,3 +617,10 @@ table.data td.forte{font-weight:600;color:var(--ink-2)}
 .utenza .chi span{font-size:.72rem;color:var(--mute);word-break:break-all}
 .utenza .azioni{display:flex;gap:6px;flex:none}
 #btnUtenze{border-color:var(--warn);color:var(--warn);font-weight:700}
+
+/* avanzamenti scritti ma non ancora arrivati all'archivio */
+.coda-spia{display:inline-flex;align-items:center;gap:6px;margin-left:auto;
+  padding:4px 11px;border-radius:999px;font-size:.72rem;font-weight:700;
+  background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-line)}
+.coda-spia::before{content:"\F293";font-family:"bootstrap-icons";font-size:.85rem}
+.coda-spia + .st-agg{margin-left:10px}

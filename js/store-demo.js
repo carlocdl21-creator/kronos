@@ -141,8 +141,10 @@ export function creaStoreDemo(){
       };
     },
 
-    async salvaFase(id, body){
-      stato.fasi[id] = {...body, aggiornatoIl:new Date().toISOString(), autore:this.utente?.nome || "—"};
+    async salvaFase(id, patch){
+      const prima = stato.fasi[id] || {inizio:null, fine:null, avanz:0, giust:"", giustData:null};
+      stato.fasi[id] = {...prima, ...patch,
+        aggiornatoIl:new Date().toISOString(), autore:this.utente?.nome || "—"};
       notifica();
     },
 

@@ -50,6 +50,7 @@ js/util.js              date, numeri, CSV, messaggi
 supabase/schema.sql     tabelle, ruoli, policy, bucket dei file
 supabase/codici.sql     codici d'invito e prima utenza amministratrice
 supabase/verifica.sql   controllo dell'installazione, non modifica nulla
+supabase/storico.sql    storico degli avanzamenti (per chi ha già installato)
 dev-server.py           server locale di prova, senza cache
 assets/                 icone e marchi del raggruppamento
 manifest.json           per aggiungere KRONOS alla schermata Home del telefono
@@ -197,6 +198,19 @@ Sopra, la curva a S confronta l'avanzamento economico cumulato previsto dal
 contratto con quello realizzato: la forbice fra le due linee è il ritardo.
 La curva reale è ricostruita dalle barre dichiarate e dalle percentuali di
 avanzamento, non da una storia di rilevazioni settimanali.
+
+**Gli avanzamenti non si perdono.** Tre accorgimenti, perché il dato dichiarato
+in cantiere è quello che poi si discute in contraddittorio:
+
+- si manda **solo il campo cambiato**: se due persone lavorano insieme, chi
+  sposta una barra non rispedisce anche la percentuale che aveva in memoria,
+  cancellando quella appena scritta dal collega;
+- senza rete il valore **resta in coda sul dispositivo**, compare una pastiglia
+  gialla che dice quanti ne mancano, e riparte da solo appena torna la linea —
+  il ricaricamento periodico non lo cancella mai dallo schermo;
+- ogni dichiarazione finisce in `fasi_storico`, tabella in sola aggiunta: la
+  riga in `fasi` dice com'è adesso, lo storico dice come ci si è arrivati e chi
+  ha scritto cosa. Nemmeno una sovrascrittura fa sparire il valore precedente.
 
 **Scostamenti.** In `js/calcoli.js`: una lavorazione è in scostamento quando la
 barra reale non coincide con quella di contratto (inizio o fine diversi). Finché

@@ -6,7 +6,8 @@
 <title>KRONOS · Programmazione e monitoraggio commessa</title>
 <meta name="description" content="Applicativo di programmazione e controllo della commessa: cronoprogramma contrattuale a confronto con l'avanzamento reale, documentazione fotografica, bolle di consegna, presenze di cantiere e richieste.">
 <meta name="theme-color" content="#0a0a0a">
-<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="icon" href="assets/hanzo-512.png" type="image/png">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="assets/icona-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -24,7 +25,8 @@
 <div id="login" class="login" hidden>
   <div class="login-card">
     <div class="brand">
-      <div class="brand-glyph"><i class="bi bi-clock-history"></i></div>
+      <div class="brand-glyph"><img src="assets/hanzo-512.png" alt="" width="512" height="512"></div>
+      <i class="bi bi-clock-history brand-orologio" aria-hidden="true"></i>
       <div class="brand-txt">
         <div class="brand-name">KRONOS</div>
         <small class="brand-by">by Hanzo</small>
@@ -106,7 +108,8 @@
     </div>
     <div class="topbar-in">
       <div class="brand">
-        <div class="brand-glyph"><i class="bi bi-clock-history"></i></div>
+        <div class="brand-glyph"><img src="assets/hanzo-512.png" alt="" width="512" height="512"></div>
+      <i class="bi bi-clock-history brand-orologio" aria-hidden="true"></i>
         <div class="brand-txt">
           <div class="brand-name">KRONOS</div>
           <small class="brand-by">by Hanzo</small>
@@ -141,6 +144,7 @@
       <div class="striscia">
         <span class="st-tit"><span class="st-cod">3613</span> Nuovo Asilo Nido Comunale</span>
         <span class="st-dati" id="stDati"></span>
+        <span class="coda-spia" id="codaSpia" hidden></span>
         <span class="st-agg" id="lastUpd"></span>
         <button class="btn sm" id="expCsv"><i class="bi bi-download"></i> CSV</button>
       </div>

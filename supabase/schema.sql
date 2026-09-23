@@ -151,6 +151,47 @@ create table if not exists public.fasi (
   aggiornato_da  uuid references public.profili(id)
 );
 
+-- Ogni dichiarazione di avanzamento resta scritta per sempre: la riga in
+-- "fasi" è lo stato di adesso, qui c'è la storia di come ci si è arrivati.
+-- Niente si perde, nemmeno se qualcuno sovrascrive il lavoro di un altro.
+create table if not exists public.fasi_storico (
+  id         bigserial primary key,
+  fase_id    text not null,
+  inizio     date,
+  fine       date,
+  avanz      int,
+  giust      text,
+  chi        uuid references public.profili(id),
+  quando     timestamptz not null default now()
+);
+create index if not exists storico_fase_idx on public.fasi_storico (fase_id, quando desc);
+
+create or replace function public.registra_storico()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  -- solo se è cambiato qualcosa che conta
+  if tg_op = 'UPDATE'
+     and new.inizio is not distinct from old.inizio
+     and new.fine   is not distinct from old.fine
+     and new.avanz  is not distinct from old.avanz
+     and new.giust  is not distinct from old.giust then
+    return new;
+  end if;
+  insert into public.fasi_storico (fase_id, inizio, fine, avanz, giust, chi)
+  values (new.id, new.inizio, new.fine, new.avanz, new.giust,
+          coalesce(new.aggiornato_da, auth.uid()));
+  return new;
+end $$;
+
+drop trigger if exists fasi_storico_trg on public.fasi;
+create trigger fasi_storico_trg
+  after insert or update on public.fasi
+  for each row execute function public.registra_storico();
+
 -- ------------------------------------------------------------------ foto --
 create table if not exists public.foto (
   id          uuid primary key default gen_random_uuid(),
@@ -225,6 +266,7 @@ alter table public.ddt               enable row level security;
 alter table public.presenze          enable row level security;
 alter table public.richieste         enable row level security;
 alter table public.richieste_eventi  enable row level security;
+alter table public.fasi_storico      enable row level security;
 
 -- profili: ogni utente autorizzato vede l'elenco (serve per mostrare i nomi),
 -- nessuno lo modifica dall'applicativo.
@@ -253,7 +295,7 @@ create policy profili_rifiuto on public.profili
 do $$
 declare t text;
 begin
-  foreach t in array array['fasi','foto','ddt','presenze','richieste','richieste_eventi'] loop
+  foreach t in array array['fasi','fasi_storico','foto','ddt','presenze','richieste','richieste_eventi'] loop
     execute format('drop policy if exists %I on public.%I', t || '_lettura', t);
     execute format(
       'create policy %I on public.%I for select to authenticated using (public.e_autorizzato())',
