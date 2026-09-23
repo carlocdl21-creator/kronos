@@ -50,6 +50,7 @@ js/util.js              date, numeri, CSV, messaggi
 supabase/schema.sql     tabelle, ruoli, policy, bucket dei file
 supabase/utenti.sql     assegnazione dei ruoli alle utenze
 dev-server.py           server locale di prova, senza cache
+assets/                 icona del sito e marchi del raggruppamento
 ```
 
 Nessuna dipendenza da installare e nessuna compilazione: sono file statici,
