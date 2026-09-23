@@ -182,6 +182,17 @@ create policy eventi_inserimento on public.richieste_eventi
   for insert to authenticated
   with check (public.e_autorizzato() and creato_da = auth.uid());
 
+-- Supabase di norma concede da sé questi privilegi alle tabelle nuove;
+-- ripeterli non fa danno ed evita un "permission denied" se così non fosse.
+-- Chi può fare cosa resta deciso dalle regole qui sopra, non da questi grant.
+do $$
+begin
+  grant usage on schema public to authenticated;
+  grant select, insert, update, delete on all tables in schema public to authenticated;
+exception when undefined_object then
+  raise warning 'Ruolo "authenticated" assente: siamo fuori da Supabase, privilegi non concessi.';
+end $$;
+
 -- ===========================================================================
 -- ARCHIVIO FILE
 -- ===========================================================================
@@ -190,20 +201,31 @@ insert into storage.buckets (id, name, public)
 values ('foto','foto',false), ('documenti','documenti',false)
 on conflict (id) do nothing;
 
-drop policy if exists kronos_file_lettura on storage.objects;
-create policy kronos_file_lettura on storage.objects
-  for select to authenticated
-  using (bucket_id in ('foto','documenti') and public.e_autorizzato());
+-- Le regole sull'archivio file stanno in una tabella di sistema: su alcuni
+-- progetti l'utenza dell'SQL Editor non può toccarle. In quel caso il resto
+-- dello schema viene creato lo stesso e compare un avviso: le tre regole si
+-- rifanno a mano da Storage → Policies (vedi README).
+do $$
+begin
+  drop policy if exists kronos_file_lettura on storage.objects;
+  create policy kronos_file_lettura on storage.objects
+    for select to authenticated
+    using (bucket_id in ('foto','documenti') and public.e_autorizzato());
 
-drop policy if exists kronos_file_scrittura on storage.objects;
-create policy kronos_file_scrittura on storage.objects
-  for insert to authenticated
-  with check (bucket_id in ('foto','documenti') and public.e_impresa());
+  drop policy if exists kronos_file_scrittura on storage.objects;
+  create policy kronos_file_scrittura on storage.objects
+    for insert to authenticated
+    with check (bucket_id in ('foto','documenti') and public.e_impresa());
 
-drop policy if exists kronos_file_rimozione on storage.objects;
-create policy kronos_file_rimozione on storage.objects
-  for delete to authenticated
-  using (bucket_id in ('foto','documenti') and public.e_impresa());
+  drop policy if exists kronos_file_rimozione on storage.objects;
+  create policy kronos_file_rimozione on storage.objects
+    for delete to authenticated
+    using (bucket_id in ('foto','documenti') and public.e_impresa());
+
+  raise notice 'Regole sui file create.';
+exception when insufficient_privilege or undefined_table then
+  raise warning 'REGOLE SUI FILE NON CREATE (%). Crearle a mano da Storage → Policies, vedi README.', sqlerrm;
+end $$;
 
 -- ===========================================================================
 -- AGGIORNAMENTI IN TEMPO REALE
@@ -215,7 +237,10 @@ begin
   foreach t in array array['fasi','foto','ddt','presenze','richieste','richieste_eventi'] loop
     begin
       execute format('alter publication supabase_realtime add table public.%I', t);
-    exception when duplicate_object then null;
+    exception
+      when duplicate_object then null;                    -- già inclusa
+      when insufficient_privilege or undefined_object then
+        raise warning 'Tempo reale non attivato su %: %. Il riallineamento periodico copre comunque gli aggiornamenti.', t, sqlerrm;
     end;
   end loop;
 end $$;

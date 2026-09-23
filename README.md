@@ -63,17 +63,32 @@ la libreria Supabase viene caricata dal CDN.
 
 ### 1. Archivio condiviso (Supabase, piano gratuito)
 
-1. Creare un progetto su <https://supabase.com>.
-2. Aprire **SQL Editor**, incollare ed eseguire per intero `supabase/schema.sql`.
-3. Creare le utenze in **Authentication → Users → Add user**
-   (indicare email e password, spuntare *Auto Confirm User*).
-4. Assegnare i ruoli eseguendo `supabase/utenti.sql`, dopo aver sostituito
-   email e nominativi con quelli reali.
-5. In **Project Settings → API** copiare *Project URL* e chiave *anon public*
-   e incollarle in `js/config.js`.
+1. Creare un progetto su <https://supabase.com> (regione Europa, es. Frankfurt).
+   Annotare la password del database: Supabase la mostra una volta sola.
+2. **SQL Editor → New query**: incollare per intero `supabase/schema.sql`
+   ed eseguire. Crea tabelle, regole di accesso, i due archivi file e il
+   tempo reale. Si può ri-eseguire senza danni.
+   - Se compare l'avviso *REGOLE SUI FILE NON CREATE*, l'utenza dell'editor
+     non può scrivere sulle tabelle di sistema: creare a mano le tre regole
+     da **Storage → Policies**, sui bucket `foto` e `documenti`
+     (lettura: utenti autenticati; caricamento ed eliminazione: solo impresa).
+3. **Authentication → Users → Add user → Create new user**: un'utenza per
+   persona, con **Auto Confirm User spuntato**, altrimenti l'accesso viene
+   rifiutato con "email non confermata".
+4. **SQL Editor**: aprire `supabase/utenti.sql`, sostituire email e
+   nominativi con quelli veri ed eseguire. Senza questo passaggio l'accesso
+   si chiude con "Utenza priva di profilo": è il profilo che porta il ruolo.
+5. **Project Settings → API**: copiare *Project URL* e la chiave
+   *anon public* in `js/config.js`.
 
-La chiave `anon` è pensata per stare nel browser: da sola non dà accesso a
-nulla, perché ogni tabella è protetta dalle policy.
+Lo schema è stato collaudato su PostgreSQL 16: l'impresa scrive cantiere e
+avanzamenti ma non può inoltrare richieste a se stessa; la committenza legge
+tutto e ogni sua scrittura sul cantiere tocca zero righe; un'utenza senza
+profilo non vede nulla.
+
+> Il piano gratuito mette in pausa il progetto dopo una settimana senza
+> accessi: si riattiva dal pannello in un minuto. Per un cantiere vero
+> conviene il piano a pagamento.
 
 ### 2. Pubblicazione del sito (GitHub Pages)
 
