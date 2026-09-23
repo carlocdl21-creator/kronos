@@ -13,18 +13,18 @@ const ORDINE_STATI = ["nuova","presa","lavorazione","terminata"];
 export function disegnaKpi(A){
   const k = riepilogo(A.dati.fasi, A.oggi);
 
-  const lu = $("lastUpd");
-  if(k.ultimoAgg){
-    const gg = Math.floor((Date.now() - new Date(k.ultimoAgg).getTime()) / MS);
-    lu.textContent = `agg. ${fmtTs(k.ultimoAgg)}` + (gg > 7 ? ` · ${gg} gg fa` : "");
-    lu.title = gg > 7
-      ? "Il cronoprogramma va aggiornato con cadenza settimanale."
-      : "Ultimo aggiornamento del cronoprogramma";
-    lu.style.color = gg > 7 ? "var(--no)" : "var(--mute)";
-  } else {
-    lu.textContent = "nessun avanzamento dichiarato";
-    lu.style.color = "var(--mute)";
-  }
+  const lu = $("lastUpd"); clear(lu);
+  const gg = k.ultimoAgg ? Math.floor((Date.now() - new Date(k.ultimoAgg).getTime()) / MS) : null;
+  const vecchio = gg === null || gg > 7;
+  lu.className = "st-agg" + (vecchio ? " scaduto" : "");
+  lu.appendChild(el("span","punto"));
+  lu.appendChild(el("span", null, k.ultimoAgg
+    ? `aggiornato ${gg === 0 ? "oggi" : gg === 1 ? "ieri" : gg + " giorni fa"}`
+    : "mai aggiornato"));
+  lu.title = k.ultimoAgg
+    ? `Ultimo aggiornamento: ${fmtTs(k.ultimoAgg)}` +
+      (vecchio ? " — il cronoprogramma va aggiornato ogni settimana." : "")
+    : "L'impresa non ha ancora dichiarato avanzamenti.";
 
   $("realeHint").textContent = A.isImpresa()
     ? "Trascina le barre, tira i bordi per allungarle."

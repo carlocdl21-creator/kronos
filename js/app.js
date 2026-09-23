@@ -464,20 +464,17 @@ try{
   const v = localStorage.getItem("kronos.vista");
   if(v === "unico" || v === "doppio") A.vista = v;
 }catch(e){}
-for(const [etichetta, valore] of [
-  ["Marcaria (MN)", ""],
-  ["CUP", "E75E26000030004"],
-  ["Importo", "€ 771.395,62"],
-  ["Consegna", fmtD(INIZIO_CONTRATTO)],
-  ["Termine", fmtD(FINE_CONTRATTO)],
-  ["Durata", "121 giorni naturali"]
+for(const [icona, titolo, valore] of [
+  ["bi-geo-alt",        "Comune",           "Marcaria (MN)"],
+  ["bi-upc-scan",       "CUP",              "E75E26000030004"],
+  ["bi-calendar-check", "Consegna lavori",  fmtD(INIZIO_CONTRATTO)],
+  ["bi-hourglass-split","Durata contrattuale", "121 giorni"]
 ]){
-  const v = el("span");
-  if(valore){
-    v.appendChild(el("span", null, etichetta + " "));
-    v.appendChild(el("b", null, valore));
-  } else v.appendChild(el("b", null, etichetta));
-  $("stDati").appendChild(v);
+  const c = el("span","st-chip");
+  c.title = titolo;
+  c.appendChild(el("i","bi " + icona));
+  c.appendChild(el("span", null, valore));
+  $("stDati").appendChild(c);
 }
 $("mnData").value = A.oggi;
 try{
