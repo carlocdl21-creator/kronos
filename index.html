@@ -7,6 +7,12 @@
 <meta name="description" content="Applicativo di programmazione e controllo della commessa: cronoprogramma contrattuale a confronto con l'avanzamento reale, documentazione fotografica, bolle di consegna, presenze di cantiere e richieste.">
 <meta name="theme-color" content="#0a0a0a">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/icona-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KRONOS">
+<meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -173,10 +179,19 @@
       <div class="card">
         <div id="fotoBread" class="breadcrumb" hidden></div>
         <div id="fotoCartelle" class="folders"></div>
-        <div id="fotoDrop" class="dropzone impresa-only" hidden>
-          <b>Trascina qui le foto</b>
-          <small>JPG, PNG o WEBP fino a 20 MB ciascuna — oppure fai clic per sceglierle</small>
+        <div class="scatta impresa-only" id="fotoAzioni" hidden>
+          <button class="btn primary grande solo-tocco" id="fotoScatta">
+            <i class="bi bi-camera-fill"></i> Scatta foto
+          </button>
+          <button class="btn grande" id="fotoScegli">
+            <i class="bi bi-images"></i> <span class="solo-tocco-testo">Dalla galleria</span><span class="no-tocco-testo">Scegli le foto</span>
+          </button>
+          <input type="file" id="fotoCamera" accept="image/*" capture="environment" hidden>
           <input type="file" id="fotoFile" accept="image/png,image/jpeg,image/webp" multiple hidden>
+        </div>
+        <div id="fotoDrop" class="dropzone impresa-only no-tocco" hidden>
+          <b>Trascina qui le foto</b>
+          <small>JPG, PNG o WEBP — oppure fai clic per sceglierle</small>
         </div>
         <div id="fotoGrid" class="grid-file" hidden></div>
       </div>
@@ -191,15 +206,23 @@
           <p>Archivio dei documenti di trasporto dei materiali approvvigionati in cantiere.</p>
         </div>
         <div class="adm-top-act">
-          <button class="btn primary impresa-only" id="ddtPick" hidden><i class="bi bi-upload"></i> Carica documenti</button>
         </div>
       </div>
       <div class="card">
         <div class="card-hd"><h2>Documenti caricati</h2><span class="sub" id="ddtSub">—</span></div>
-        <div id="ddtDrop" class="dropzone impresa-only" hidden>
-          <b>Trascina qui le bolle</b>
-          <small>PDF o immagini fino a 20 MB ciascuna — oppure fai clic per sceglierle</small>
+        <div class="scatta impresa-only" id="ddtAzioni" hidden>
+          <button class="btn primary grande solo-tocco" id="ddtScatta">
+            <i class="bi bi-camera-fill"></i> Fotografa la bolla
+          </button>
+          <button class="btn grande" id="ddtScegli">
+            <i class="bi bi-file-earmark-arrow-up"></i> <span class="solo-tocco-testo">Dai file</span><span class="no-tocco-testo">Scegli i documenti</span>
+          </button>
+          <input type="file" id="ddtCamera" accept="image/*" capture="environment" hidden>
           <input type="file" id="ddtFile" accept="application/pdf,image/png,image/jpeg,image/webp" multiple hidden>
+        </div>
+        <div id="ddtDrop" class="dropzone impresa-only no-tocco" hidden>
+          <b>Trascina qui le bolle</b>
+          <small>PDF o immagini — oppure fai clic per sceglierle</small>
         </div>
         <div id="ddtGrid" class="grid-file"></div>
       </div>
@@ -239,7 +262,7 @@
         <div class="card-hd"><h2>Giornale di cantiere</h2><span class="sub" id="mnSub">—</span></div>
         <div class="card-bd flush tscroll">
           <table class="data">
-            <thead><tr><th>Giornata</th><th>Cognome e nome</th><th>Ore</th><th>Lavorazione</th><th>Impresa</th><th></th></tr></thead>
+            <thead><tr><th>Giornata</th><th>Cognome e nome</th><th>Ore</th><th>Lavorazione</th><th class="col-impresa">Impresa</th><th></th></tr></thead>
             <tbody id="tbMano"></tbody>
           </table>
         </div>

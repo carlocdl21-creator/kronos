@@ -50,7 +50,8 @@ js/util.js              date, numeri, CSV, messaggi
 supabase/schema.sql     tabelle, ruoli, policy, bucket dei file
 supabase/utenti.sql     assegnazione dei ruoli alle utenze
 dev-server.py           server locale di prova, senza cache
-assets/                 icona del sito e marchi del raggruppamento
+assets/                 icone e marchi del raggruppamento
+manifest.json           per aggiungere KRONOS alla schermata Home del telefono
 ```
 
 Nessuna dipendenza da installare e nessuna compilazione: sono file statici,
@@ -107,6 +108,29 @@ Poi aprire <http://localhost:8099>.
 `dev-server.py` è `http.server` con le intestazioni che impediscono al
 browser di tenere in cache i moduli: senza, le modifiche non si vedono
 finché non si ricarica tenendo premuto Shift.
+
+---
+
+## Dal telefono, in cantiere
+
+L'impresa lavora dal telefono: nelle foto delle lavorazioni e nelle bolle
+compare il pulsante **Scatta foto**, che apre direttamente la fotocamera
+posteriore (`capture="environment"`), senza passare dalla galleria. Accanto
+resta il pulsante per scegliere immagini o PDF già salvati.
+
+Le foto vengono **ridotte prima di partire** (lato massimo 2200 px, JPEG
+82%): uno scatto da 4 MB diventa circa 400 KB, mantenendo l'orientamento.
+Con poco campo fa la differenza fra un caricamento e un'attesa inutile, e
+l'archivio gratuito di Supabase (1 GB) regge molte più foto.
+
+Anche il foglio presenze è pensato per il telefono: campi a tutta larghezza,
+testo a 16 px — sotto quella misura iOS ingrandisce la pagina a ogni tocco —
+e giornata, lavorazione e impresa che restano compilate fra un operaio e
+l'altro.
+
+Conviene aggiungere il sito alla schermata Home: su iPhone *Condividi →
+Aggiungi a Home*, su Android *Installa app*. Grazie a `manifest.json` si apre
+a tutto schermo, senza la barra del browser, e sembra un'applicazione.
 
 ---
 

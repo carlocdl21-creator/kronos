@@ -12,7 +12,8 @@ import {
   disegnaRichieste, riempiSelettoriFase
 } from "./views.js";
 import {
-  $, el, clear, toast, errMsg, fmtD, nf2, todayISO, csv, scaricaTesto, scaricaBlob
+  $, el, clear, toast, errMsg, fmtD, nf2, todayISO, csv, scaricaTesto, scaricaBlob,
+  alleggerisciImmagine, peso
 } from "./util.js";
 
 /* ───────────────────────────── contesto ───────────────────────────── */
@@ -304,19 +305,27 @@ async function caricaFoto(files){
   if(!A.faseAperta){ toast("Aprire prima la cartella della fase."); return; }
   const arr = Array.from(files || []);
   if(!arr.length) return;
-  toast(`Caricamento di ${arr.length} file…`);
-  let ok = 0;
-  for(const file of arr){
-    try{ await A.store.caricaFoto(file, {faseId:A.faseAperta, didascalia:""}); ok++; }
-    catch(e){ toast(errMsg(e)); }
+
+  let ok = 0, risparmio = 0;
+  for(const [k, originale] of arr.entries()){
+    toast(`Invio foto ${k + 1} di ${arr.length}…`);
+    try{
+      const file = await alleggerisciImmagine(originale);
+      risparmio += Math.max(0, originale.size - file.size);
+      await A.store.caricaFoto(file, {faseId:A.faseAperta, didascalia:""});
+      ok++;
+    }catch(e){ toast(errMsg(e)); }
   }
   if(ok){
-    toast(`${ok} foto caricate in “${BY_ID[A.faseAperta]?.nome || "—"}”.`);
+    toast(`${ok} ${ok === 1 ? "foto caricata" : "foto caricate"} in “${BY_ID[A.faseAperta]?.nome || "—"}”` +
+      (risparmio > 400 * 1024 ? ` · ${peso(risparmio)} risparmiati` : ""));
     await ricarica();
   }
 }
 
 collegaDropzone($("fotoDrop"), $("fotoFile"), caricaFoto);
+collegaScatto($("fotoScatta"), $("fotoCamera"), caricaFoto);
+collegaScatto($("fotoScegli"), $("fotoFile"), caricaFoto);
 
 /* ───────────────────────────── bolle e DDT ───────────────────────────── */
 
@@ -324,21 +333,31 @@ async function caricaDdt(files){
   if(!A.isImpresa()){ toast("Solo l'impresa esecutrice può caricare i documenti."); return; }
   const arr = Array.from(files || []);
   if(!arr.length) return;
-  toast(`Caricamento di ${arr.length} documenti…`);
+
   let ok = 0;
-  for(const file of arr){
-    try{ await A.store.aggiungiDdt(file); ok++; }
-    catch(e){ toast(errMsg(e)); }
+  for(const [k, originale] of arr.entries()){
+    toast(`Invio documento ${k + 1} di ${arr.length}…`);
+    try{
+      await A.store.aggiungiDdt(await alleggerisciImmagine(originale));
+      ok++;
+    }catch(e){ toast(errMsg(e)); }
   }
-  if(ok){ toast(`${ok} documenti caricati.`); await ricarica(); }
+  if(ok){ toast(`${ok} ${ok === 1 ? "documento caricato" : "documenti caricati"}.`); await ricarica(); }
 }
 
 collegaDropzone($("ddtDrop"), $("ddtFile"), caricaDdt);
-$("ddtPick").addEventListener("click", () => $("ddtFile").click());
+collegaScatto($("ddtScatta"), $("ddtCamera"), caricaDdt);
+collegaScatto($("ddtScegli"), $("ddtFile"), caricaDdt);
+
+/** Un pulsante che apre la fotocamera del telefono (o il selettore file). */
+function collegaScatto(pulsante, input, azione){
+  if(!pulsante || !input) return;
+  pulsante.addEventListener("click", () => input.click());
+  input.addEventListener("change", ev => { azione(ev.target.files); ev.target.value = ""; });
+}
 
 function collegaDropzone(zona, input, azione){
   zona.addEventListener("click", () => input.click());
-  input.addEventListener("change", ev => { azione(ev.target.files); ev.target.value = ""; });
   ["dragenter","dragover"].forEach(t =>
     zona.addEventListener(t, e => { e.preventDefault(); zona.classList.add("hot"); }));
   ["dragleave","drop"].forEach(t =>

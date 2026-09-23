@@ -58,10 +58,11 @@ export function disegnaFoto(A){
   const bread = $("fotoBread");
   const grid = $("fotoGrid");
   const drop = $("fotoDrop");
+  const azioni = $("fotoAzioni");
 
   if(!A.faseAperta){
     /* ---- elenco cartelle ---- */
-    bread.hidden = true; grid.hidden = true; drop.hidden = true;
+    bread.hidden = true; grid.hidden = true; drop.hidden = true; azioni.hidden = true;
     cartelle.hidden = false;
     clear(cartelle);
     for(const r of TRACCIATE){
@@ -87,6 +88,7 @@ export function disegnaFoto(A){
   bread.hidden = false;
   grid.hidden = false;
   drop.hidden = !A.isImpresa();
+  azioni.hidden = !A.isImpresa();
 
   clear(bread);
   const indietro = el("button","btn sm");
@@ -109,7 +111,7 @@ export function disegnaFoto(A){
     e.appendChild(el("i","bi bi-camera"));
     e.appendChild(el("b", null, "Cartella vuota"));
     e.appendChild(el("span", null, A.isImpresa()
-      ? "Trascina qui sopra le foto della lavorazione."
+      ? "Scatta o scegli le foto della lavorazione."
       : "L'impresa non ha ancora caricato foto per questa fase."));
     grid.appendChild(e);
     return;
@@ -187,7 +189,7 @@ async function lightbox(A, f){
 export function disegnaDdt(A){
   $("cnt-ddt").textContent = A.dati.ddt.length;
   $("ddtDrop").hidden = !A.isImpresa();
-  $("ddtPick").hidden = !A.isImpresa();
+  $("ddtAzioni").hidden = !A.isImpresa();
 
   const grid = $("ddtGrid"); clear(grid);
   const lista = A.dati.ddt.slice()
@@ -202,7 +204,7 @@ export function disegnaDdt(A){
     e.appendChild(el("i","bi bi-file-earmark-arrow-up"));
     e.appendChild(el("b", null, "Nessun documento"));
     e.appendChild(el("span", null, A.isImpresa()
-      ? "Trascina qui sopra le bolle di consegna: PDF o foto del documento."
+      ? "Fotografa la bolla di consegna, oppure allega il PDF."
       : "L'impresa non ha ancora caricato bolle di consegna."));
     grid.appendChild(e);
     return;
@@ -294,7 +296,7 @@ export function disegnaPresenze(A){
     tr.appendChild(el("td","forte", nome));
     tr.appendChild(el("td",null, `${nfOre(Number(r.ore) || 0)} h`));
     tr.appendChild(el("td",null, r.lavorazione || "—"));
-    tr.appendChild(el("td",null, r.impresa || "—"));
+    tr.appendChild(el("td","col-impresa", r.impresa || "—"));
     const tdX = el("td");
     if(A.isImpresa()){
       const x = el("button","btn sm danger");

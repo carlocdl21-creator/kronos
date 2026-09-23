@@ -89,3 +89,36 @@ export function estensione(nome, fallback = "bin"){
   const m = String(nome||"").match(/\.([a-z0-9]{2,5})$/i);
   return m ? m[1].toLowerCase() : fallback;
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   Le foto scattate col telefono pesano 3-5 MB l'una: in cantiere, con
+   poco campo, caricarle intere è lento e riempie l'archivio. Vengono
+   ridotte prima di partire, conservando l'orientamento dello scatto.
+   ══════════════════════════════════════════════════════════════════ */
+export async function alleggerisciImmagine(file, {latoMax = 2200, qualita = 0.82} = {}){
+  if(!file || !String(file.type).startsWith("image/")) return file;
+  if(file.type === "image/gif" || file.size < 500 * 1024) return file;
+  try{
+    const bitmap = await createImageBitmap(file, {imageOrientation: "from-image"});
+    const scala = Math.min(1, latoMax / Math.max(bitmap.width, bitmap.height));
+    const w = Math.round(bitmap.width * scala);
+    const h = Math.round(bitmap.height * scala);
+    const tela = document.createElement("canvas");
+    tela.width = w; tela.height = h;
+    tela.getContext("2d").drawImage(bitmap, 0, 0, w, h);
+    bitmap.close?.();
+    const blob = await new Promise(r => tela.toBlob(r, "image/jpeg", qualita));
+    if(!blob || blob.size >= file.size) return file;          // già ottimizzata
+    return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".jpg",
+      {type: "image/jpeg", lastModified: file.lastModified || Date.now()});
+  }catch(e){
+    return file;   // browser che non sa ridurla: si carica com'è
+  }
+}
+
+/** Peso di un file in forma leggibile. */
+export function peso(byte){
+  if(byte < 1024) return byte + " B";
+  if(byte < 1024 * 1024) return Math.round(byte / 1024) + " KB";
+  return (byte / 1024 / 1024).toFixed(1).replace(".", ",") + " MB";
+}

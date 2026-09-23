@@ -1,0 +1,16 @@
+{
+  "name": "KRONOS — Commessa 3613 Asilo Marcaria",
+  "short_name": "KRONOS",
+  "description": "Programmazione e monitoraggio della commessa: cronoprogramma, foto delle lavorazioni, bolle e presenze.",
+  "lang": "it",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#fafafa",
+  "theme_color": "#0a0a0a",
+  "icons": [
+    { "src": "assets/icona-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icona-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
