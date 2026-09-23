@@ -54,7 +54,10 @@ export function barraReale(r, fasi, oggi){
  */
 export function disegnaGantt(gbody, o){
   const {modo, fasi, oggi, px, sc} = o;
-  const reale = modo === "reale";
+  const unico = modo === "unico";                 // contratto e reale nella stessa riga
+  const reale = modo === "reale" || unico;
+  const contratto = modo === "base" || unico;
+  gbody.dataset.modo = modo;
   const LW = larghezzaEtichette();
   const TW = sc.giorni * px;
   gbody.style.setProperty("--lw", LW + "px");
@@ -64,7 +67,8 @@ export function disegnaGantt(gbody, o){
   /* ── testata: mesi e settimane ── */
   const head = el("div","ghead");
   const hl = el("div","glabel");
-  hl.appendChild(el("span","eyebrow", reale ? "Avanzamento reale" : "Baseline di contratto"));
+  hl.appendChild(el("span","eyebrow",
+    unico ? "Contratto e reale" : (reale ? "Avanzamento reale" : "Baseline di contratto")));
   head.appendChild(hl);
 
   const s = el("div","gscale");
@@ -115,14 +119,15 @@ export function disegnaGantt(gbody, o){
     const tr = el("div","gtrack");
     tr.style.backgroundImage = griglia;
 
-    if(!reale){
-      /* ---------- tavola contrattuale ---------- */
-      const b = el("div","gbar");
+    if(contratto){
+      /* ---------- barra di contratto ---------- */
+      const b = el("div","gbar contratto");
       b.style.left = x(r.i) + "px";
       b.style.width = Math.max(4, (diffDays(r.f, r.i) + 1) * px) + "px";
       b.title = `${r.nome}\nContratto: ${fmtD(r.i)} → ${fmtD(r.f)} (${r.durata} gg)`;
       tr.appendChild(b);
-    } else {
+    }
+    if(reale){
       /* ---------- tavola reale ---------- */
       const b = barraReale(r, fasi, oggi);
       const tracciabile = r.foglia && !r.continua;

@@ -453,3 +453,36 @@ table.data tr:hover td{background:var(--surface-2)}
   .rq{padding:14px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ─────────────── vista sovrapposta e curva a S ─────────────── */
+.vista-bar{display:flex;align-items:center;gap:10px 16px;flex-wrap:wrap;margin:14px 0 10px}
+.vista-bar .sub{font-size:.74rem;color:var(--mute)}
+.vista-bar .zoom{margin-left:auto}
+.segm{display:inline-flex;gap:3px;background:#f1f1f3;border:1px solid #e4e4e7;border-radius:var(--r-md);padding:3px}
+.segm button{border:none;background:none;padding:6px 13px;border-radius:7px;font-size:.78rem;
+  font-weight:700;color:#52525b;cursor:pointer;white-space:nowrap}
+.segm button:hover{color:var(--ink);background:#e8e8ea}
+.segm button.on{background:var(--ink);color:#fafafa}
+
+.curva-box{position:relative;padding:10px 14px 4px}
+.curva-box svg{display:block;width:100%;height:auto;cursor:crosshair}
+.curva-tip{position:absolute;top:10px;background:var(--surface);border:1px solid var(--line-2);
+  border-radius:var(--r-sm);box-shadow:var(--sh-2);padding:7px 10px;font-size:.72rem;
+  display:flex;flex-direction:column;gap:1px;pointer-events:none;z-index:5;min-width:132px}
+.curva-tip b{font-size:.74rem;font-weight:700;margin-bottom:2px}
+.curva-tip .bene{color:var(--ok);font-weight:700}
+.curva-tip .male{color:var(--no);font-weight:700}
+
+/* riga con le due barre: contratto sottile sopra, reale spessa sotto */
+.gbody[data-modo="unico"] .grow,
+.gbody[data-modo="unico"] .glabel{min-height:46px}
+.gbody[data-modo="unico"] .gbar.contratto{top:10px;height:7px;border-radius:4px;background:var(--mute-2)}
+.gbody[data-modo="unico"] .gbar.real{top:22px;height:16px}
+.gbody[data-modo="unico"] .gpct-bolla{top:23px}
+.gbody[data-modo="unico"] .gnota{top:22px;height:16px;font-size:.66rem}
+.gbody[data-modo="unico"] .grow[data-liv="0"] .gbar.contratto,
+.gbody[data-modo="unico"] .grow[data-liv="1"] .gbar.contratto,
+.gbody[data-modo="unico"] .grow[data-liv="2"] .gbar.contratto{top:12px;height:5px}
+.gbody[data-modo="unico"] .grow[data-liv="0"] .gbar.real,
+.gbody[data-modo="unico"] .grow[data-liv="1"] .gbar.real,
+.gbody[data-modo="unico"] .grow[data-liv="2"] .gbar.real{top:24px;height:8px}

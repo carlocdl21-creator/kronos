@@ -105,33 +105,52 @@
       <div class="kpibar" id="kpis"></div>
       <div id="alertZone"></div>
 
-      <!-- diagramma contrattuale -->
+      <!-- curva a S -->
       <div class="card">
         <div class="card-hd">
-          <h2>Cronoprogramma contrattuale</h2>
-          <span class="sub">Baseline di gara, elaborato 3613_E_GE_1016 rev. 00 — non modificabile.</span>
+          <h2>Avanzamento previsto e realizzato</h2>
+          <span class="sub">Curva a S dell'avanzamento economico cumulato: la forbice fra le due linee è il ritardo, in punti percentuali.</span>
         </div>
-        <div class="gscroll" id="gscroll-base"><div class="gbody" id="gbody-base"></div></div>
+        <div class="card-bd curva-box" id="curvaBox"></div>
       </div>
 
-      <!-- diagramma reale -->
-      <div class="card">
-        <div class="card-hd">
-          <h2>Cronoprogramma reale</h2>
-          <span class="sub" id="realeHint">—</span>
-          <div class="act">
-            <span class="legend">
-              <span><i class="sw sw-ok"></i>In linea</span>
-              <span><i class="sw sw-no"></i>Da giustificare</span>
-              <span><i class="sw sw-note"></i>Giustificato</span>
-            </span>
-            <span class="zoom">
-              <button class="btn sm ghost" id="zoomOut" aria-label="Riduci la scala temporale"><i class="bi bi-dash-lg"></i></button>
-              <button class="btn sm ghost" id="zoomIn" aria-label="Aumenta la scala temporale"><i class="bi bi-plus-lg"></i></button>
-            </span>
+      <!-- scelta della vista -->
+      <div class="vista-bar">
+        <span class="segm" id="vistaSwitch">
+          <button type="button" data-vista="unico">Sovrapposto</button>
+          <button type="button" data-vista="doppio">Due tavole</button>
+        </span>
+        <span class="legend">
+          <span><i class="sw sw-base"></i>Contratto</span>
+          <span><i class="sw sw-ok"></i>Reale in linea</span>
+          <span><i class="sw sw-no"></i>Da giustificare</span>
+          <span><i class="sw sw-note"></i>Giustificato</span>
+        </span>
+        <span class="sub" id="realeHint"></span>
+        <span class="zoom">
+          <button class="btn sm ghost" id="zoomOut" aria-label="Riduci la scala temporale"><i class="bi bi-dash-lg"></i></button>
+          <button class="btn sm ghost" id="zoomIn" aria-label="Aumenta la scala temporale"><i class="bi bi-plus-lg"></i></button>
+        </span>
+      </div>
+
+      <!-- vista sovrapposta: contratto e reale nella stessa riga -->
+      <div class="card" id="cardUnico">
+        <div class="gscroll" id="gscroll-unico"><div class="gbody" id="gbody-unico"></div></div>
+      </div>
+
+      <!-- vista a due tavole -->
+      <div id="vistaDoppia" hidden>
+        <div class="card">
+          <div class="card-hd">
+            <h2>Cronoprogramma contrattuale</h2>
+            <span class="sub">Baseline di gara, elaborato 3613_E_GE_1016 rev. 00 — non modificabile.</span>
           </div>
+          <div class="gscroll" id="gscroll-base"><div class="gbody" id="gbody-base"></div></div>
         </div>
-        <div class="gscroll" id="gscroll-reale"><div class="gbody" id="gbody-reale"></div></div>
+        <div class="card">
+          <div class="card-hd"><h2>Cronoprogramma reale</h2></div>
+          <div class="gscroll" id="gscroll-reale"><div class="gbody" id="gbody-reale"></div></div>
+        </div>
       </div>
     </section>
 

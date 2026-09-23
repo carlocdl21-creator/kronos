@@ -6,6 +6,7 @@ import { CONFIG, isConfigurato } from "./config.js";
 import { BASE, BY_ID, INIZIO_CONTRATTO, FINE_CONTRATTO } from "./baseline.js";
 import { calc } from "./calcoli.js";
 import { disegnaGantt, scala, larghezzaEtichette } from "./gantt.js";
+import { disegnaCurva } from "./curva.js";
 import {
   disegnaKpi, disegnaFoto, disegnaDdt, disegnaPresenze,
   disegnaRichieste, riempiSelettoriFase
@@ -22,6 +23,7 @@ const A = {
   oggi: todayISO(),
   tab: "crono",
   zoom: 1,      // 1 = tutta la commessa a schermo
+  vista: "unico",   // "unico" = due barre nella stessa riga, "doppio" = due tavole
   faseAperta: null,
   reqFiltro: "",
   rqRisposta: null,
@@ -155,13 +157,26 @@ function disegnaCrono(){
   const sc = scala(A.dati.fasi, A.oggi);
   const px = pixelPerGiorno(sc);
   const comune = { fasi:A.dati.fasi, oggi:A.oggi, px, sc };
-  disegnaGantt($("gbody-base"),  {...comune, modo:"base"});
-  disegnaGantt($("gbody-reale"), {...comune, modo:"reale",
+  const modificabile = {
     editabile: A.isImpresa(),
     onDate: cambiaDate,
     onAvanz: (id, v) => salvaFase(id, {avanz:v}),
     onNota: apriNota
-  });
+  };
+
+  const unico = A.vista === "unico";
+  $("cardUnico").hidden = !unico;
+  $("vistaDoppia").hidden = unico;
+  document.querySelectorAll("#vistaSwitch button").forEach(b =>
+    b.classList.toggle("on", b.dataset.vista === A.vista));
+
+  if(unico){
+    disegnaGantt($("gbody-unico"), {...comune, modo:"unico", ...modificabile});
+  } else {
+    disegnaGantt($("gbody-base"),  {...comune, modo:"base"});
+    disegnaGantt($("gbody-reale"), {...comune, modo:"reale", ...modificabile});
+  }
+  disegnaCurva($("curvaBox"), {fasi:A.dati.fasi, oggi:A.oggi, sc});
 }
 
 function applicaRuolo(){
@@ -417,7 +432,14 @@ document.querySelectorAll(".tab").forEach(b =>
 $("zoomIn").addEventListener("click", () => { A.zoom = Math.min(5, A.zoom + .5); disegnaCrono(); });
 $("zoomOut").addEventListener("click", () => { A.zoom = Math.max(1, A.zoom - .5); disegnaCrono(); });
 
-/* le due tavole scorrono insieme: il confronto a vista deve restare allineato */
+document.querySelectorAll("#vistaSwitch button").forEach(b =>
+  b.addEventListener("click", () => {
+    A.vista = b.dataset.vista;
+    try{ localStorage.setItem("kronos.vista", A.vista); }catch(e){}
+    disegnaCrono();
+  }));
+
+/* nella vista a due tavole lo scorrimento resta allineato */
 (function sincronizzaScorrimento(){
   const a = $("gscroll-base"), b = $("gscroll-reale");
   let bloccato = false;
@@ -438,6 +460,10 @@ window.addEventListener("resize", () => {
 
 /* ───────────────────────────── predisposizioni ───────────────────────────── */
 
+try{
+  const v = localStorage.getItem("kronos.vista");
+  if(v === "unico" || v === "doppio") A.vista = v;
+}catch(e){}
 $("cartPeriodo").textContent =
   `Comune di Marcaria (MN) · ${fmtD(INIZIO_CONTRATTO)} → ${fmtD(FINE_CONTRATTO)}`;
 for(const [etichetta, valore] of [

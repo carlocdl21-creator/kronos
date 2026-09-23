@@ -41,7 +41,8 @@ js/config.js            → UNICO FILE DA COMPILARE: indirizzo e chiave Supabase
 js/app.js               avvio, accesso, eventi, esportazioni
 js/baseline.js          le 31 righe del cronoprogramma contrattuale
 js/calcoli.js           scostamenti, avanzamento atteso, avanzamento economico
-js/gantt.js             le due tavole di Gantt e il trascinamento delle barre
+js/gantt.js             le tavole di Gantt e il trascinamento delle barre
+js/curva.js             curva a S: avanzamento previsto contro realizzato
 js/views.js             disegno delle sezioni (cartelle foto, bolle, presenze, richieste)
 js/store-supabase.js    archivio condiviso: database, file, tempo reale
 js/store-demo.js        archivio dimostrativo locale (senza server)
@@ -119,6 +120,15 @@ perché nulla viene condiviso fra gli utenti.
 del nuovo cronoprogramma e aggiornare la testata in `index.html`
 (oggetto, stazione appaltante, CUP, importo, termini). Gli `id` delle righe
 sono le chiavi della tabella `fasi`: cambiandoli si azzerano gli avanzamenti.
+
+**Le due viste del cronoprogramma.** “Sovrapposto” mette nella stessa riga la
+barra di contratto (sottile, grigia) e quella reale (spessa): lo sfasamento si
+legge senza spostare gli occhi. “Due tavole” tiene i due cronoprogrammi
+affiancati verticalmente, con la stessa scala e lo scorrimento sincronizzato.
+Sopra, la curva a S confronta l'avanzamento economico cumulato previsto dal
+contratto con quello realizzato: la forbice fra le due linee è il ritardo.
+La curva reale è ricostruita dalle barre dichiarate e dalle percentuali di
+avanzamento, non da una storia di rilevazioni settimanali.
 
 **Scostamenti.** In `js/calcoli.js`: una lavorazione è in scostamento quando la
 barra reale non coincide con quella di contratto (inizio o fine diversi). Finché
