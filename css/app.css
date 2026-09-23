@@ -592,8 +592,8 @@ table.data td.forte{font-weight:600;color:var(--ink-2)}
 .hanzo-firma{display:inline-flex;align-items:center;text-decoration:none;
   opacity:.8;transition:opacity .15s}
 .hanzo-firma:hover{opacity:1}
-.hanzo-firma img{height:17px;width:auto;display:block}
-@media (max-width:620px){ .hanzo-firma img{height:14px} }
+.hanzo-firma img{height:12px;width:auto;display:block}
+@media (max-width:620px){ .hanzo-firma img{height:10px} }
 .m3d{display:block;transform-style:preserve-3d;will-change:transform;
   animation:marchio-oscilla 8s ease-in-out infinite}
 .m3d:nth-child(2){animation-delay:-4s}
