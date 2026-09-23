@@ -1,7 +1,8 @@
 /* ==========================================================================
    Baseline contrattuale — elaborato 3613_E_GE_1016 "Cronoprogramma lavori"
    rev. 00 del 13/07/2026, Studio Rinnova SRL STP.
-   Le 31 righe riproducono fedelmente la WBS del cronoprogramma estimativo.
+   Le righe riproducono la WBS del cronoprogramma estimativo, senza la
+   riga d'insieme dell'opera e senza i costi della sicurezza.
 
    liv: 0 = opera, 1 = categoria, 2 = gruppo, 3 = attività
    foglia: attività elementare tracciata in cantiere
@@ -29,9 +30,6 @@ export const IMPORTO_LAVORI = 771395.62;
 
 /** Righe come stampate sull'elaborato di gara, prima della traslazione. */
 const BASE_GARA = [
-  {n:1,  id:"lotto2",     liv:0, nome:"LOTTO 2 · Asilo",                     durata:121, i:"2026-08-01", f:"2026-11-29", costo:771395.62},
-  {n:2,  id:"cat_sic",    liv:1, nome:"Costi Sicurezza",                     durata:121, i:"2026-08-01", f:"2026-11-29", costo:25530.04},
-  {n:3,  id:"sic",        liv:2, nome:"Costi Sicurezza",                     durata:121, i:"2026-08-01", f:"2026-11-29", costo:25530.04, foglia:true, continua:true},
   {n:4,  id:"og1",        liv:1, nome:"OG1 · Edifici civili e industriali",  durata:121, i:"2026-08-01", f:"2026-11-29", costo:399928.50},
   {n:5,  id:"og1_strut",  liv:2, nome:"Strutture",                           durata:52,  i:"2026-08-01", f:"2026-09-21", costo:75245.06},
   {n:6,  id:"fondazioni", liv:3, nome:"Fondazioni",                          durata:26,  i:"2026-08-01", f:"2026-08-26", costo:65007.51, foglia:true},
@@ -62,14 +60,19 @@ const BASE_GARA = [
   {n:31, id:"xlam",       liv:3, nome:"Xlam",                                durata:16,  i:"2026-09-01", f:"2026-09-16", costo:149460.13, foglia:true}
 ];
 
-/** Le 31 righe con le date effettive della commessa. */
-export const BASE = BASE_GARA.map(r => ({
+/** Le righe con le date effettive della commessa.
+ *  La numerazione è progressiva e parte dalla prima categoria di lavori. */
+export const BASE = BASE_GARA.map((r, k) => ({
   ...r,
+  n: k + 1,
   i: addDays(r.i, TRASLAZIONE),
   f: addDays(r.f, TRASLAZIONE),
   iGara: r.i,
   fGara: r.f
 }));
+
+/** Livello della riga più alta: serve per il rientro delle etichette. */
+export const LIV_MIN = Math.min(...BASE.map(r => r.liv));
 
 export const BY_ID = Object.fromEntries(BASE.map(r => [r.id, r]));
 export const FOGLIE = BASE.filter(r => r.foglia);

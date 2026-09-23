@@ -6,7 +6,7 @@
    finché non viene scritto il motivo dello scostamento.
    ══════════════════════════════════════════════════════════════════ */
 
-import { BASE, INIZIO_LAVORI } from "./baseline.js";
+import { BASE, INIZIO_LAVORI, LIV_MIN } from "./baseline.js";
 import { calc, intervallo, foglieDi } from "./calcoli.js";
 import { d, iso, addDays, diffDays, fmtD, eur, el, clear } from "./util.js";
 
@@ -109,7 +109,7 @@ export function disegnaGantt(gbody, o){
     row.dataset.id = r.id;
 
     const lab = el("div","glabel");
-    lab.style.setProperty("--ind", (r.liv * 13) + "px");
+    lab.style.setProperty("--ind", ((r.liv - LIV_MIN) * 13) + "px");
     lab.appendChild(el("span","num", String(r.n)));
     const nm = el("span","nm", r.nome);
     nm.title = `${r.nome} · ${fmtD(r.i)} → ${fmtD(r.f)} · ${r.durata} gg · ${eur(r.costo)}`;
