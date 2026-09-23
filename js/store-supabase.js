@@ -1,0 +1,230 @@
+/* ==========================================================================
+   Archivio condiviso su Supabase: autenticazione, database e file.
+   Tutti i controlli di ruolo sono applicati anche lato server dalle policy
+   RLS definite in supabase/schema.sql: quanto si nasconde nell'interfaccia
+   resta comunque vietato al database.
+   ========================================================================== */
+
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm";
+import { CONFIG } from "./config.js";
+
+const SEC_URL = 3600;               // durata dei collegamenti firmati ai file
+const urlCache = new Map();         // path -> {url, scade}
+
+export function creaStoreSupabase(){
+  const sb = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true }
+  });
+  let profili = {};                 // id -> {nome, ruolo}
+  let canale = null;
+
+  async function caricaProfilo(userId, email){
+    const { data, error } = await sb.from("profili").select("id,nome,ruolo").eq("id", userId).maybeSingle();
+    if(error) throw error;
+    if(!data) throw new Error("Utenza priva di profilo: contattare il responsabile dell'applicativo.");
+    return { id:userId, email, nome:data.nome, ruolo:data.ruolo };
+  }
+
+  function bucketDi(path){
+    return path?.startsWith("documenti/") ? CONFIG.BUCKET_DOCUMENTI : CONFIG.BUCKET_FOTO;
+  }
+  function chiaveDi(path){
+    return path.replace(/^(foto|documenti)\//, "");
+  }
+
+  return {
+    mode: "supabase",
+    utente: null,
+    sb,
+
+    async init(){
+      const { data } = await sb.auth.getSession();
+      if(!data?.session) return false;
+      this.utente = await caricaProfilo(data.session.user.id, data.session.user.email);
+      return true;
+    },
+
+    async entra(email, password){
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      if(error) throw error;
+      this.utente = await caricaProfilo(data.user.id, data.user.email);
+      return this.utente;
+    },
+    async entraDemo(){ throw new Error("Modalità dimostrativa non disponibile: archivio condiviso attivo."); },
+
+    async esci(){
+      canale?.unsubscribe();
+      canale = null;
+      urlCache.clear();
+      await sb.auth.signOut();
+      this.utente = null;
+    },
+
+    async carica(){
+      const [p, f, ft, dd, pr, rq, ev] = await Promise.all([
+        sb.from("profili").select("id,nome,ruolo"),
+        sb.from("fasi").select("*"),
+        sb.from("foto").select("*").order("creato_il", {ascending:false}),
+        sb.from("ddt").select("*").order("data", {ascending:false}),
+        sb.from("presenze").select("*").order("data", {ascending:false}),
+        sb.from("richieste").select("*").order("creato_il", {ascending:false}),
+        sb.from("richieste_eventi").select("*").order("creato_il", {ascending:true})
+      ]);
+      for(const r of [p,f,ft,dd,pr,rq,ev]) if(r.error) throw r.error;
+
+      profili = Object.fromEntries((p.data||[]).map(x => [x.id, x]));
+      const nome = id => profili[id]?.nome || "—";
+
+      const fasi = {};
+      for(const r of f.data || []){
+        fasi[r.id] = {
+          inizio:r.inizio, fine:r.fine, avanz:r.avanz ?? 0,
+          giust:r.giust || "", giustData:r.giust_data,
+          aggiornatoIl:r.aggiornato_il, autore:nome(r.aggiornato_da)
+        };
+      }
+      const eventiPer = {};
+      for(const e of ev.data || []){
+        (eventiPer[e.richiesta_id] ||= []).push({
+          at:e.creato_il, autore:nome(e.creato_da), ruolo:e.ruolo, testo:e.testo
+        });
+      }
+      return {
+        fasi,
+        foto: (ft.data||[]).map(r => ({
+          id:r.id, faseId:r.fase_id, didascalia:r.didascalia, path:r.path,
+          nomeFile:r.nome_file, tipo:r.tipo, autore:nome(r.creato_da), creatoIl:r.creato_il
+        })),
+        ddt: (dd.data||[]).map(r => ({
+          id:r.id, numero:r.numero, data:r.data, fornitore:r.fornitore, descrizione:r.descrizione,
+          faseId:r.fase_id, path:r.path, nomeFile:r.nome_file, tipo:r.tipo,
+          autore:nome(r.creato_da), creatoIl:r.creato_il
+        })),
+        presenze: (pr.data||[]).map(r => ({
+          id:r.id, data:r.data, impresa:r.impresa, nOperai:r.n_operai, ore:Number(r.ore)||0,
+          faseId:r.fase_id, nominativi:r.nominativi, autore:nome(r.creato_da), creatoIl:r.creato_il
+        })),
+        richieste: (rq.data||[]).map(r => ({
+          id:r.id, titolo:r.titolo, testo:r.testo, stato:r.stato, faseId:r.fase_id,
+          priorita:r.priorita, scadenza:r.scadenza, autore:nome(r.creato_da),
+          creatoIl:r.creato_il, eventi:eventiPer[r.id] || []
+        }))
+      };
+    },
+
+    /* ----------------- cronoprogramma ----------------- */
+    async salvaFase(id, b){
+      const { error } = await sb.from("fasi").upsert({
+        id, inizio:b.inizio, fine:b.fine, avanz:b.avanz,
+        giust:b.giust, giust_data:b.giustData,
+        aggiornato_il:new Date().toISOString(), aggiornato_da:this.utente.id
+      });
+      if(error) throw error;
+    },
+
+    /* ----------------- file ----------------- */
+    async urlFile(path){
+      if(!path) return null;
+      const c = urlCache.get(path);
+      if(c && c.scade > Date.now()) return c.url;
+      const { data, error } = await sb.storage.from(bucketDi(path))
+        .createSignedUrl(chiaveDi(path), SEC_URL);
+      if(error) return null;
+      urlCache.set(path, { url:data.signedUrl, scade: Date.now() + (SEC_URL - 120)*1000 });
+      return data.signedUrl;
+    },
+    async blobFile(path){
+      const { data, error } = await sb.storage.from(bucketDi(path)).download(chiaveDi(path));
+      if(error) throw error;
+      return data;
+    },
+
+    async caricaFoto(file, {faseId, didascalia}){
+      const key = `${faseId || "generale"}/${Date.now()}-${Math.random().toString(36).slice(2,8)}-${file.name.replace(/[^\w.\-]+/g,"_")}`;
+      const up = await sb.storage.from(CONFIG.BUCKET_FOTO)
+        .upload(key, file, { contentType:file.type, upsert:false });
+      if(up.error) throw up.error;
+      const { error } = await sb.from("foto").insert({
+        fase_id:faseId || null, didascalia:didascalia || null, path:"foto/" + key,
+        nome_file:file.name, tipo:file.type, creato_da:this.utente.id
+      });
+      if(error){ await sb.storage.from(CONFIG.BUCKET_FOTO).remove([key]); throw error; }
+    },
+    async eliminaFoto(f){
+      const { error } = await sb.from("foto").delete().eq("id", f.id);
+      if(error) throw error;
+      if(f.path) await sb.storage.from(CONFIG.BUCKET_FOTO).remove([chiaveDi(f.path)]);
+      urlCache.delete(f.path);
+    },
+
+    /* ----------------- bolle e DDT ----------------- */
+    async aggiungiDdt(meta, file){
+      let path = null;
+      if(file){
+        const key = `ddt/${Date.now()}-${Math.random().toString(36).slice(2,8)}-${file.name.replace(/[^\w.\-]+/g,"_")}`;
+        const up = await sb.storage.from(CONFIG.BUCKET_DOCUMENTI)
+          .upload(key, file, { contentType:file.type, upsert:false });
+        if(up.error) throw up.error;
+        path = "documenti/" + key;
+      }
+      const { error } = await sb.from("ddt").insert({
+        numero:meta.numero, data:meta.data, fornitore:meta.fornitore || null,
+        descrizione:meta.descrizione || null, fase_id:meta.faseId || null,
+        path, nome_file:file?.name || null, tipo:file?.type || null, creato_da:this.utente.id
+      });
+      if(error) throw error;
+    },
+    async eliminaDdt(r){
+      const { error } = await sb.from("ddt").delete().eq("id", r.id);
+      if(error) throw error;
+      if(r.path) await sb.storage.from(CONFIG.BUCKET_DOCUMENTI).remove([chiaveDi(r.path)]);
+      urlCache.delete(r.path);
+    },
+
+    /* ----------------- presenze ----------------- */
+    async aggiungiPresenza(p){
+      const { error } = await sb.from("presenze").insert({
+        data:p.data, impresa:p.impresa || null, n_operai:p.nOperai, ore:p.ore,
+        fase_id:p.faseId || null, nominativi:p.nominativi || null, creato_da:this.utente.id
+      });
+      if(error) throw error;
+    },
+    async eliminaPresenza(p){
+      const { error } = await sb.from("presenze").delete().eq("id", p.id);
+      if(error) throw error;
+    },
+
+    /* ----------------- richieste ----------------- */
+    async aggiungiRichiesta(r){
+      const { data, error } = await sb.from("richieste").insert({
+        titolo:r.titolo, testo:r.testo, stato:"nuova", fase_id:r.faseId || null,
+        priorita:r.priorita, scadenza:r.scadenza || null, creato_da:this.utente.id
+      }).select("id").single();
+      if(error) throw error;
+      await sb.from("richieste_eventi").insert({
+        richiesta_id:data.id, testo:"richiesta inoltrata",
+        ruolo:this.utente.ruolo, creato_da:this.utente.id
+      });
+    },
+    async aggiungiEvento(r, testo, nuovoStato){
+      if(nuovoStato){
+        const { error } = await sb.from("richieste").update({ stato:nuovoStato }).eq("id", r.id);
+        if(error) throw error;
+      }
+      const { error } = await sb.from("richieste_eventi").insert({
+        richiesta_id:r.id, testo, ruolo:this.utente.ruolo, creato_da:this.utente.id
+      });
+      if(error) throw error;
+    },
+
+    /* ----------------- tempo reale ----------------- */
+    onCambio(cb){
+      try{
+        canale = sb.channel("kronos-commessa")
+          .on("postgres_changes", { event:"*", schema:"public" }, () => cb())
+          .subscribe();
+      }catch(e){ /* senza realtime resta il riallineamento periodico */ }
+      return () => { canale?.unsubscribe(); canale = null; };
+    }
+  };
+}

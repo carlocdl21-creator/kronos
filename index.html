@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KRONOS · Programmazione e monitoraggio commessa</title>
+<meta name="description" content="Applicativo di programmazione e controllo della commessa: cronoprogramma contrattuale a confronto con l'avanzamento reale, documentazione fotografica, bolle di consegna, presenze di cantiere e richieste.">
+<meta name="theme-color" content="#15222D">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<!-- ===================== ACCESSO ===================== -->
+<div id="login" class="login" hidden>
+  <div class="login-card">
+    <div class="mark">
+      <div class="mark-glyph" aria-hidden="true"></div>
+      <div>
+        <div class="mark-name">Kronos</div>
+        <div class="mark-sub">Programmazione e monitoraggio commessa</div>
+      </div>
+    </div>
+    <div class="login-commessa">
+      <div class="lbl">Commessa 3613</div>
+      <div>Costruzione Nuovo Asilo Nido Comunale — Comune di Marcaria (MN)</div>
+    </div>
+
+    <form id="loginForm" class="login-form" autocomplete="on">
+      <label class="field"><span>Indirizzo email</span>
+        <input type="email" id="logEmail" required autocomplete="username" placeholder="nome@dominio.it"></label>
+      <label class="field"><span>Password</span>
+        <input type="password" id="logPwd" required autocomplete="current-password" placeholder="••••••••"></label>
+      <div id="logErr" class="login-err" hidden></div>
+      <button class="btn primary lg" id="logBtn" type="submit">Accedi</button>
+    </form>
+
+    <div id="demoBox" class="login-demo" hidden>
+      <div class="lbl">Modalità dimostrativa</div>
+      <p>Il collegamento all'archivio condiviso non è configurato. È possibile provare l'applicativo in locale: i dati restano su questo dispositivo e non vengono condivisi.</p>
+      <div class="login-demo-btns">
+        <button class="btn" data-demo="impresa">Entra come impresa esecutrice</button>
+        <button class="btn" data-demo="committenza">Entra come Stazione Appaltante / DL</button>
+      </div>
+    </div>
+
+    <p class="login-foot">Accesso riservato ai soggetti autorizzati della commessa. Le credenziali sono rilasciate dal responsabile dell'applicativo.</p>
+  </div>
+</div>
+
+<!-- ===================== APPLICATIVO ===================== -->
+<div class="wrap" id="app" hidden>
+  <header class="cartiglio">
+    <div class="cart-top">
+      <div class="mark">
+        <div class="mark-glyph" aria-hidden="true"></div>
+        <div>
+          <div class="mark-name">Kronos</div>
+          <div class="mark-sub">Programmazione e monitoraggio commessa</div>
+        </div>
+      </div>
+      <div class="rev">
+        <div>COMMESSA <b>3613</b> &middot; ELAB. <b>E_GE_1016</b></div>
+        <div>BASELINE CONTRATTUALE REV. <b>00</b> &middot; 13/07/2026</div>
+      </div>
+    </div>
+    <div class="cart-grid">
+      <div class="cart-cell"><div class="lbl">Oggetto</div><div class="v">Costruzione Nuovo Asilo Nido Comunale</div></div>
+      <div class="cart-cell"><div class="lbl">Stazione appaltante</div><div class="v">Comune di Marcaria (MN)</div></div>
+      <div class="cart-cell"><div class="lbl">CUP</div><div class="v mono">E75E26000030004</div></div>
+      <div class="cart-cell"><div class="lbl">Importo lavori</div><div class="v mono">€ 771.395,62</div></div>
+      <div class="cart-cell"><div class="lbl">Termine contrattuale</div><div class="v mono">01/08/2026 → 29/11/2026</div></div>
+      <div class="cart-cell"><div class="lbl">Durata</div><div class="v mono">121 giorni naturali</div></div>
+    </div>
+    <div class="idbar">
+      <span id="roleChip" class="role-chip sa"><span class="dot"></span><span id="roleName">—</span></span>
+      <span class="perm" id="rolePerm"></span>
+      <span class="spacer"></span>
+      <span class="who mono" id="whoami"></span>
+      <button class="btn sm ghost" id="btnRefresh" title="Ricarica i dati dall'archivio">Aggiorna</button>
+      <button class="btn sm ghost" id="btnLogout">Esci</button>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Sezioni del cantiere">
+    <button class="tab" role="tab" id="tb-crono" aria-controls="tp-crono" aria-selected="true" data-tab="crono">Cronoprogramma</button>
+    <button class="tab" role="tab" id="tb-foto" aria-controls="tp-foto" aria-selected="false" data-tab="foto">Foto lavorazioni <span class="cnt" id="cnt-foto">0</span></button>
+    <button class="tab" role="tab" id="tb-ddt" aria-controls="tp-ddt" aria-selected="false" data-tab="ddt">Bolle e DDT <span class="cnt" id="cnt-ddt">0</span></button>
+    <button class="tab" role="tab" id="tb-mano" aria-controls="tp-mano" aria-selected="false" data-tab="mano">Presenze cantiere <span class="cnt" id="cnt-mano">0</span></button>
+    <button class="tab" role="tab" id="tb-req" aria-controls="tp-req" aria-selected="false" data-tab="req">Richieste <span class="cnt" id="cnt-req">0</span></button>
+  </nav>
+
+  <div id="connWarn" class="notice warn" hidden>
+    <b>Modalità dimostrativa</b>
+    <span>I dati inseriti restano su questo dispositivo e non sono condivisi con gli altri utenti. Configurare l'archivio condiviso per l'uso in cantiere.</span>
+  </div>
+
+  <!-- ============ CRONOPROGRAMMA ============ -->
+  <section id="tp-crono" role="tabpanel" aria-labelledby="tb-crono">
+    <div class="panel">
+      <div class="panel-hd">
+        <h2>Stato della commessa</h2>
+        <span class="sub" id="lastUpd">—</span>
+      </div>
+      <div class="kpis" id="kpis"></div>
+    </div>
+
+    <div id="alertZone"></div>
+
+    <div class="panel">
+      <div class="panel-hd">
+        <h2>Cronoprogramma contrattuale e avanzamento reale</h2>
+        <span class="sub">Barra tratteggiata: baseline di contratto (elab. 3613_E_GE_1016). Barra piena: andamento reale dichiarato in cantiere.</span>
+      </div>
+      <div class="gantt-tools">
+        <div class="legend">
+          <span><i class="lg-base"></i>Baseline contrattuale</span>
+          <span><i class="lg-real"></i>Reale in linea</span>
+          <span><i class="lg-late"></i>Reale in ritardo</span>
+          <span><i class="lg-today"></i>Data odierna</span>
+        </div>
+        <div class="zoom">
+          <span class="lbl">Scala</span>
+          <button class="btn sm ghost" id="zoomOut" aria-label="Riduci la scala temporale">−</button>
+          <button class="btn sm ghost" id="zoomIn" aria-label="Aumenta la scala temporale">+</button>
+        </div>
+      </div>
+      <div class="gscroll" id="gscroll">
+        <div class="gbody" id="gbody"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-hd">
+        <h2>Registro avanzamenti e scostamenti</h2>
+        <span class="sub" id="tableHint">Aggiornamento a cadenza settimanale. Ogni scostamento rispetto alla baseline richiede una giustificazione scritta, visibile alla Direzione Lavori.</span>
+        <button class="btn sm ghost" id="expCsv">Esporta CSV</button>
+      </div>
+      <div class="panel-bd flush tscroll">
+        <table class="data" id="tblFasi">
+          <thead>
+            <tr>
+              <th style="min-width:230px">Attività</th>
+              <th>Baseline</th>
+              <th>Inizio reale</th>
+              <th>Fine reale</th>
+              <th>Avanz.</th>
+              <th>Δ inizio</th>
+              <th>Δ fine</th>
+              <th>Stato</th>
+              <th style="min-width:230px">Giustificazione dello scostamento</th>
+            </tr>
+          </thead>
+          <tbody id="tbFasi"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOTO ============ -->
+  <section id="tp-foto" role="tabpanel" aria-labelledby="tb-foto" hidden>
+    <div class="panel">
+      <div class="panel-hd">
+        <h2>Documentazione fotografica per fase</h2>
+        <span class="sub">Ogni immagine è associata alla fase del cronoprogramma a cui si riferisce.</span>
+      </div>
+      <div class="filters">
+        <label class="field" style="flex:1 1 240px"><span>Fase</span>
+          <select id="fotoFilter"></select>
+        </label>
+        <label class="field impresa-only" style="flex:1 1 240px"><span>Carica nella fase</span>
+          <select id="fotoFase"></select>
+        </label>
+        <label class="field impresa-only" style="flex:2 1 260px"><span>Didascalia (opzionale)</span>
+          <input type="text" id="fotoCap" placeholder="Es. getto platea – campo nord">
+        </label>
+        <div class="impresa-only">
+          <input type="file" id="fotoFile" accept="image/png,image/jpeg,image/webp" multiple hidden>
+          <button class="btn primary" id="fotoBtn">Carica foto</button>
+        </div>
+      </div>
+      <div id="fotoDrop" class="drop impresa-only"><b>Trascina qui le foto</b>JPG, PNG o WEBP fino a 20 MB ciascuna</div>
+      <div class="grid-foto" id="fotoGrid"></div>
+    </div>
+  </section>
+
+  <!-- ============ DDT ============ -->
+  <section id="tp-ddt" role="tabpanel" aria-labelledby="tb-ddt" hidden>
+    <div class="panel impresa-only">
+      <div class="panel-hd"><h2>Nuova bolla di consegna</h2><span class="sub">Documento di trasporto dei materiali approvvigionati in cantiere.</span></div>
+      <div class="panel-bd">
+        <div class="formgrid">
+          <label class="field"><span>N. documento</span><input type="text" id="ddtNum" placeholder="Es. 2026/1487"></label>
+          <label class="field"><span>Data consegna</span><input type="date" id="ddtData"></label>
+          <label class="field"><span>Fornitore</span><input type="text" id="ddtForn" placeholder="Ragione sociale"></label>
+          <label class="field"><span>Fase di riferimento</span><select id="ddtFase"></select></label>
+          <label class="field" style="grid-column:1/-1"><span>Materiale consegnato</span><input type="text" id="ddtDesc" placeholder="Es. pannelli XLAM – 1° carico"></label>
+        </div>
+        <div class="row-end">
+          <input type="file" id="ddtFile" accept="application/pdf,image/png,image/jpeg,image/webp" hidden>
+          <button class="btn" id="ddtPick">Allega file…</button>
+          <span class="mono muted-sm" id="ddtFileName">Nessun file selezionato</span>
+          <button class="btn primary push" id="ddtSave">Registra bolla</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-hd"><h2>Registro bolle e DDT</h2><span class="sub" id="ddtSub">—</span>
+        <button class="btn sm ghost" id="ddtCsv">Esporta CSV</button>
+      </div>
+      <div class="panel-bd flush tscroll">
+        <table class="data" id="tblDdt">
+          <thead><tr><th>Data</th><th>N. documento</th><th>Fornitore</th><th>Materiale</th><th>Fase</th><th>Allegato</th><th></th></tr></thead>
+          <tbody id="tbDdt"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PRESENZE ============ -->
+  <section id="tp-mano" role="tabpanel" aria-labelledby="tb-mano" hidden>
+    <div class="panel impresa-only">
+      <div class="panel-hd"><h2>Registrazione presenze</h2><span class="sub">Elenco degli operai presenti in cantiere nella singola giornata.</span></div>
+      <div class="panel-bd">
+        <div class="formgrid">
+          <label class="field"><span>Giornata</span><input type="date" id="mnData"></label>
+          <label class="field"><span>Impresa / squadra</span><input type="text" id="mnImpresa" placeholder="Es. Impresa esecutrice"></label>
+          <label class="field"><span>N. operai</span><input type="number" id="mnNum" min="0" max="200" step="1" value="0"></label>
+          <label class="field"><span>Ore lavorate</span><input type="number" id="mnOre" min="0" max="2000" step="0.5" value="0"></label>
+          <label class="field"><span>Lavorazione</span><select id="mnFase"></select></label>
+          <label class="field" style="grid-column:1/-1"><span>Nominativi</span><input type="text" id="mnNomi" placeholder="Cognome Nome, Cognome Nome…"></label>
+        </div>
+        <div class="row-end"><button class="btn primary push" id="mnSave">Registra giornata</button></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-hd"><h2>Giornale di cantiere</h2><span class="sub" id="mnSub">—</span>
+        <button class="btn sm ghost" id="mnCsv">Esporta CSV</button>
+      </div>
+      <div class="panel-bd flush tscroll">
+        <table class="data" id="tblMano">
+          <thead><tr><th>Giornata</th><th>Impresa / squadra</th><th>Operai</th><th>Ore</th><th>Lavorazione</th><th>Nominativi</th><th></th></tr></thead>
+          <tbody id="tbMano"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RICHIESTE ============ -->
+  <section id="tp-req" role="tabpanel" aria-labelledby="tb-req" hidden>
+    <div class="panel sa-only">
+      <div class="panel-hd"><h2>Nuova richiesta alla ditta</h2><span class="sub">Inoltrata dalla Stazione Appaltante o dalla Direzione Lavori; l'impresa ne aggiorna lo stato di lavorazione.</span></div>
+      <div class="panel-bd">
+        <div class="formgrid">
+          <label class="field" style="grid-column:1/-1"><span>Oggetto</span><input type="text" id="rqTit" placeholder="Es. Integrazione documentazione XLAM"></label>
+          <label class="field"><span>Fase di riferimento</span><select id="rqFase"></select></label>
+          <label class="field"><span>Priorità</span><select id="rqPrio"><option value="normale">Normale</option><option value="alta">Alta</option><option value="urgente">Urgente</option></select></label>
+          <label class="field"><span>Riscontro richiesto entro</span><input type="date" id="rqDue"></label>
+        </div>
+        <label class="field mt"><span>Testo della richiesta</span><textarea id="rqTxt" placeholder="Descrivere la richiesta…"></textarea></label>
+        <div class="row-end"><button class="btn primary push" id="rqSend">Invia richiesta</button></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-hd"><h2>Registro richieste</h2><span class="sub" id="rqSub">—</span>
+        <label class="field" style="min-width:170px"><span>Filtra per stato</span>
+          <select id="rqFilter">
+            <option value="">Tutte</option>
+            <option value="nuova">Nuova</option>
+            <option value="presa">Presa in carico</option>
+            <option value="lavorazione">In lavorazione</option>
+            <option value="terminata">Terminata</option>
+          </select>
+        </label>
+      </div>
+      <div class="panel-bd" id="rqList"></div>
+    </div>
+  </section>
+
+  <div class="foot">
+    <span>KRONOS · applicativo interno di programmazione e controllo della commessa</span>
+    <span>Baseline: elaborato 3613_E_GE_1016 “Cronoprogramma lavori”, rev. 00 del 13/07/2026</span>
+    <span id="footRole"></span>
+  </div>
+</div>
+
+<div id="boot" class="boot"><div class="boot-in"><span class="spin" aria-hidden="true"></span> Caricamento…</div></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
