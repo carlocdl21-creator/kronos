@@ -31,8 +31,22 @@ const A = {
   rqApertI: new Set(),
   ruolo(){ return A.store?.utente?.ruolo || "committenza"; },
   isImpresa(){ return A.ruolo() === "impresa"; },
-  ricarica, render, scaricaFile
+  ricarica, render, scaricaFile, vaiAllaFase
 };
+
+/** Porta in vista la barra di una lavorazione e la fa lampeggiare. */
+function vaiAllaFase(id){
+  if(A.tab !== "crono") selezionaTab("crono");
+  setTimeout(() => {
+    const dove = A.vista === "unico" ? "gbody-unico" : "gbody-reale";
+    const riga = document.querySelector(`#${dove} .grow[data-id="${id}"]`);
+    if(!riga) return;
+    riga.scrollIntoView({block:"center", behavior:"smooth"});
+    const nota = riga.querySelector(".gnota");
+    (nota || riga).classList.add("lampeggia");
+    setTimeout(() => (nota || riga).classList.remove("lampeggia"), 2400);
+  }, 60);
+}
 
 /* ───────────────────────────── avvio ───────────────────────────── */
 

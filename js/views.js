@@ -30,23 +30,30 @@ export function disegnaKpi(A){
     ? "Trascina le barre, tira i bordi per allungarle."
     : "Dichiarato dall'impresa.";
 
-  const az = $("alertZone"); clear(az);
+  /* Gli avvisi non sono più un cartello rosso largo quanto la pagina:
+     due pastiglie accanto alle altre, che al clic portano sulla barra. */
+  const av = $("avvisi"); clear(av);
+
   if(k.senzaGiust.length){
     const q = k.senzaGiust.length;
-    const n = el("div","notice no");
-    n.appendChild(el("i","bi bi-exclamation-octagon-fill"));
-    n.appendChild(el("span", null,
-      `${q} ${q === 1 ? "lavorazione si scosta" : "lavorazioni si scostano"} dal cronoprogramma contrattuale senza motivo scritto: ` +
-      k.senzaGiust.map(c => c.b.nome).join(", ") + "." +
-      (A.isImpresa() ? " Fai clic sull'etichetta rossa a fianco della barra per giustificare." : "")));
-    az.appendChild(n);
+    const p = el("button", "avviso no");
+    p.type = "button";
+    p.appendChild(el("i","bi bi-exclamation-triangle-fill"));
+    p.appendChild(el("span", null,
+      q === 1 ? "1 scostamento da giustificare" : `${q} scostamenti da giustificare`));
+    p.title = k.senzaGiust.map(c => c.b.nome).join(", ") +
+      (A.isImpresa() ? " — fai clic per andare alla barra" : "");
+    p.addEventListener("click", () => A.vaiAllaFase(k.senzaGiust[0].b.id));
+    av.appendChild(p);
   }
+
   if(k.slittamento > 0){
-    const n = el("div","notice warn");
-    n.appendChild(el("i","bi bi-calendar-x"));
-    n.appendChild(el("span", null,
-      `Fine lavori stimata al ${fmtD(k.fineStimata)}: ${k.slittamento} giorni oltre il termine contrattuale del ${fmtD(FINE_CONTRATTO)}. Sono richieste azioni correttive documentate.`));
-    az.appendChild(n);
+    const p = el("span", "avviso warn");
+    p.appendChild(el("i","bi bi-calendar-x"));
+    p.appendChild(el("span", null, `+${k.slittamento} gg sul termine`));
+    p.title = `Fine lavori stimata al ${fmtD(k.fineStimata)}, ` +
+      `contro il termine contrattuale del ${fmtD(FINE_CONTRATTO)}.`;
+    av.appendChild(p);
   }
 }
 

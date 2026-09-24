@@ -693,3 +693,18 @@ table.data td.forte{font-weight:600;color:var(--ink-2)}
   background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-line)}
 .coda-spia::before{content:"\F293";font-family:"bootstrap-icons";font-size:.85rem}
 .coda-spia + .st-agg{margin-left:10px}
+
+/* avvisi: pastiglie accanto ai dati di commessa, non cartelli a tutta pagina */
+.avvisi{display:inline-flex;gap:7px;flex-wrap:wrap}
+.avviso{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;
+  font-size:.73rem;font-weight:700;border:1px solid;background:none;font-family:inherit}
+.avviso i{font-size:.82rem}
+.avviso.no{background:var(--no-bg);color:var(--no);border-color:var(--no-line);cursor:pointer}
+.avviso.no:hover{background:#fee2e2}
+.avviso.warn{background:var(--warn-bg);color:var(--warn);border-color:var(--warn-line)}
+
+@keyframes lampeggio{
+  0%,100%{box-shadow:0 0 0 0 rgba(185,28,28,0)}
+  30%,70%{box-shadow:0 0 0 5px rgba(185,28,28,.35)}
+}
+.lampeggia{animation:lampeggio 1.2s ease-in-out 2;border-radius:6px}
