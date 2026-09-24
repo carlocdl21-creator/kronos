@@ -10,7 +10,9 @@ with atteso as (
     ('archivi file',     2, 'creare i bucket foto e documenti da Storage'),
     ('regole sui file',  3, 'creare le 3 regole da Storage → Policies'),
     ('codici d''invito', 2, 'codici.sql non è stato eseguito'),
-    ('amministratori',   1, 'in codici.sql l''email non coincide con l''utenza')
+    ('amministratori',   1, 'in codici.sql l''email non coincide con l''utenza'),
+    ('storico',          1, 'eseguire storico.sql'),
+    ('registra storico', 1, 'trigger assente: rieseguire storico.sql')
   ) as t(cosa, quanti, rimedio)
 ),
 trovato as (
@@ -36,6 +38,13 @@ trovato as (
   union all
   select 'amministratori', count(*)::int
     from public.profili where amministratore and attivo
+  union all
+  select 'storico', count(*)::int
+    from information_schema.tables
+   where table_schema = 'public' and table_name = 'fasi_storico'
+  union all
+  select 'registra storico', count(*)::int
+    from pg_trigger where tgname = 'fasi_storico_trg' and not tgisinternal
 )
 select a.cosa,
        t.n || ' / ' || a.quanti as trovati,
