@@ -702,6 +702,7 @@ table.data td.forte{font-weight:600;color:var(--ink-2)}
 .avviso.no{background:var(--no-bg);color:var(--no);border-color:var(--no-line);cursor:pointer}
 .avviso.no:hover{background:#fee2e2}
 .avviso.warn{background:var(--warn-bg);color:var(--warn);border-color:var(--warn-line)}
+.avviso.info{background:#f4f4f5;color:var(--mute);border-color:var(--line)}
 
 @keyframes lampeggio{
   0%,100%{box-shadow:0 0 0 0 rgba(185,28,28,0)}

@@ -34,6 +34,18 @@ export function disegnaKpi(A){
      due pastiglie accanto alle altre, che al clic portano sulla barra. */
   const av = $("avvisi"); clear(av);
 
+  /* Perché i campi non si scrivono: detto qui, dov'è lo sguardo, e non
+     lasciato capire dal fatto che non succede niente. */
+  if(!A.isImpresa()){
+    const p = el("span", "avviso info");
+    p.appendChild(el("i","bi bi-eye"));
+    p.appendChild(el("span", null, "sola lettura"));
+    p.title = "Sei entrato come Stazione Appaltante / Direzione Lavori: " +
+      "il cronoprogramma, gli avanzamenti e i caricamenti sono riservati " +
+      "all\u2019impresa esecutrice.";
+    av.appendChild(p);
+  }
+
   if(k.senzaGiust.length){
     const q = k.senzaGiust.length;
     const p = el("button", "avviso no");
