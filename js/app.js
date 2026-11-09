@@ -748,6 +748,9 @@ for(const [tinta, icona, titolo, valore] of [
   c.appendChild(el("span", null, valore));
   $("stDati").appendChild(c);
 }
+// La consegna dei lavori sul pannello d'ingresso viene da baseline.js:
+// ridatare la commessa deve bastare, senza ritoccare anche la pagina.
+$("lgData").textContent = fmtD(INIZIO_CONTRATTO);
 $("mnData").value = A.oggi;
 $("mnImpresa").value = "";
 try{

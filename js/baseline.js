@@ -19,7 +19,7 @@ import { addDays, diffDays } from "./util.js";
    durate e vincoli di precedenza invariati.
    Per ri-datare l'intera commessa basta cambiare questa riga.
    ────────────────────────────────────────────────────────────────── */
-export const INIZIO_LAVORI = "2026-10-05";
+export const INIZIO_LAVORI = "2026-11-09";
 
 const INIZIO_GARA = "2026-08-01";
 const TRASLAZIONE = diffDays(INIZIO_LAVORI, INIZIO_GARA);
