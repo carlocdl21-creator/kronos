@@ -1,0 +1,56 @@
+# ════════════════════════════════════════════════════════════════════
+# Sveglia l'archivio Supabase.
+#
+# Il piano gratuito mette in pausa il progetto dopo circa una settimana
+# senza accessi: quando succede l'indirizzo del database sparisce dal DNS
+# e KRONOS, pur raggiungibile, non fa più entrare nessuno. Una chiamata
+# al giorno basta a tenerlo sveglio.
+#
+# Se la chiamata fallisce il lavoro va in errore e GitHub manda un avviso
+# per posta: serve anche da sentinella, non solo da sveglia.
+#
+# L'indirizzo e la chiave si leggono da js/config.js: sono gli stessi che
+# il sito espone già al browser, qui non si aggiunge nessun segreto.
+# ════════════════════════════════════════════════════════════════════
+name: Sveglia archivio
+
+on:
+  schedule:
+    - cron: "23 6 * * *"      # ogni giorno alle 06:23 UTC
+  workflow_dispatch:           # e a mano, dal pulsante "Run workflow"
+
+jobs:
+  sveglia:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Chiama l'archivio
+        run: |
+          set -euo pipefail
+          URL=$(grep -o 'SUPABASE_URL: *"[^"]*"' js/config.js | cut -d'"' -f2)
+          KEY=$(grep -o 'SUPABASE_ANON_KEY: *"[^"]*"' js/config.js | cut -d'"' -f2)
+          if [ -z "$URL" ] || [ -z "$KEY" ]; then
+            echo "js/config.js non contiene indirizzo e chiave: niente da svegliare."
+            exit 1
+          fi
+          echo "Archivio: $URL"
+
+          # Una lettura qualunque basta a contare come attività. Da utente
+          # anonimo le policy restituiscono un elenco vuoto: va bene così,
+          # qui interessa solo che il database risponda.
+          cod=$(curl -s -S -m 30 -o /tmp/risposta -w '%{http_code}' \
+                "$URL/rest/v1/fasi?select=id&limit=1" \
+                -H "apikey: $KEY" -H "Authorization: Bearer $KEY")
+          echo "Dati:  HTTP $cod"
+          head -c 300 /tmp/risposta; echo
+
+          salute=$(curl -s -S -m 30 -o /dev/null -w '%{http_code}' \
+                   "$URL/auth/v1/health" -H "apikey: $KEY")
+          echo "Accessi: HTTP $salute"
+
+          if [ "$cod" != "200" ] || [ "$salute" != "200" ]; then
+            echo "::error::L'archivio non risponde come dovrebbe. Il progetto potrebbe essere in pausa o fermo."
+            exit 1
+          fi
+          echo "Archivio sveglio."
