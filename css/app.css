@@ -334,7 +334,7 @@ textarea{resize:vertical;min-height:84px;line-height:1.55}
 .gbar.contratto{background:var(--contratto)}
 .grow[data-liv="0"] .gbar.contratto,.grow[data-liv="1"] .gbar.contratto,
 .grow[data-liv="2"] .gbar.contratto{
-  height:8px;top:calc(50% - 4px);background:var(--contratto-2);border-radius:3px;border:none
+  height:8px;top:calc(50% - 4px);background:var(--contratto);border-radius:3px;border:none
 }
 .gbar > .fill{position:absolute;inset:0 auto 0 0;width:0;background:var(--reale)}
 
@@ -583,7 +583,7 @@ table.data tr:hover td{background:var(--surface-2)}
 .gbody[data-modo="unico"] .gnota{top:23px;height:15px;font-size:.58rem;padding:0 5px}
 .gbody[data-modo="unico"] .grow[data-liv="0"] .gbar.contratto,
 .gbody[data-modo="unico"] .grow[data-liv="1"] .gbar.contratto,
-.gbody[data-modo="unico"] .grow[data-liv="2"] .gbar.contratto{top:12px;height:5px;background:var(--contratto-2)}
+.gbody[data-modo="unico"] .grow[data-liv="2"] .gbar.contratto{top:12px;height:5px;background:var(--contratto)}
 .gbody[data-modo="unico"] .grow[data-liv="0"] .gbar.real,
 .gbody[data-modo="unico"] .grow[data-liv="1"] .gbar.real,
 .gbody[data-modo="unico"] .grow[data-liv="2"] .gbar.real{top:24px;height:8px}
