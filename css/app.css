@@ -709,3 +709,17 @@ table.data td.forte{font-weight:600;color:var(--ink-2)}
   30%,70%{box-shadow:0 0 0 5px rgba(185,28,28,.35)}
 }
 .lampeggia{animation:lampeggio 1.2s ease-in-out 2;border-radius:6px}
+
+/* Il meteo del giornale di cantiere: una pastiglia stretta, leggibile
+   anche quando la stessa giornata si ripete per sette operai. */
+.meteo{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;
+  font-size:.72rem;font-weight:700;color:var(--mute)}
+.meteo i{font-size:.85rem}
+.meteo.soleggiato i{color:#d97706}
+.meteo.pioggia i,.meteo.grandine i{color:#2383e2}
+.meteo.neve i{color:#64748b}
+.meteo.vento i{color:#15803d}
+table.data td.nota{white-space:normal;max-width:260px;color:var(--ink)}
+.field.larga{grid-column:1/-1}
+/* "facoltative" è un'indicazione, non parte del nome del campo */
+.field > span small{font-weight:600;letter-spacing:.04em;opacity:.55}

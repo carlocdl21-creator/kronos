@@ -3,7 +3,7 @@
    ══════════════════════════════════════════════════════════════════ */
 
 import { CONFIG, isConfigurato } from "./config.js";
-import { BASE, BY_ID, INIZIO_CONTRATTO, FINE_CONTRATTO } from "./baseline.js";
+import { BASE, BY_ID, METEO, INIZIO_CONTRATTO, FINE_CONTRATTO } from "./baseline.js";
 import { calc } from "./calcoli.js";
 import { disegnaGantt, scala, larghezzaEtichette } from "./gantt.js";
 import { disegnaCurva } from "./curva.js";
@@ -627,11 +627,14 @@ $("mnSave").addEventListener("click", async () => {
       data, nome, cognome,
       ore: Math.max(0, Number($("mnOre").value) || 0),
       lavorazione,
-      impresa: $("mnImpresa").value.trim()
+      impresa: $("mnImpresa").value.trim(),
+      meteo: $("mnMeteo").value,
+      note: $("mnNote").value.trim()
     });
     toast(`Presenza di ${[cognome, nome].filter(Boolean).join(" ")} registrata.`);
-    // giornata, lavorazione e impresa restano: si passa all'operaio successivo
-    $("mnNome").value = ""; $("mnCognome").value = "";
+    // giornata, meteo, lavorazione e impresa restano: si passa all'operaio
+    // successivo. La nota no: riguarda la singola persona.
+    $("mnNome").value = ""; $("mnCognome").value = ""; $("mnNote").value = "";
     $("mnCognome").focus();
     await ricarica();
   }catch(e){ toast(errMsg(e)); }
@@ -678,12 +681,12 @@ $("expCsv").addEventListener("click", () => {
 });
 
 $("mnCsv").addEventListener("click", () => {
-  const rows = [["Giornata","Cognome","Nome","Ore","Lavorazione","Impresa"]];
+  const rows = [["Giornata","Meteo","Cognome","Nome","Ore","Lavorazione","Impresa","Note"]];
   for(const r of A.dati.presenze.slice().sort((a,b) =>
       String(a.data||"").localeCompare(String(b.data||"")) ||
       String(a.cognome||"").localeCompare(String(b.cognome||"")))){
-    rows.push([fmtD(r.data), r.cognome||"", r.nome||"", r.ore ?? 0,
-               r.lavorazione||"", r.impresa||""]);
+    rows.push([fmtD(r.data), METEO[r.meteo]?.lab || "", r.cognome||"", r.nome||"",
+               r.ore ?? 0, r.lavorazione||"", r.impresa||"", r.note||""]);
   }
   scaricaTesto(csv(rows), "presenze-cantiere-3613.csv");
 });

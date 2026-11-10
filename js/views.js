@@ -2,7 +2,7 @@
    Disegno delle sezioni. Ogni funzione riceve il contesto A di app.js.
    ══════════════════════════════════════════════════════════════════ */
 
-import { BY_ID, TRACCIATE, STATI, FINE_CONTRATTO } from "./baseline.js";
+import { BY_ID, TRACCIATE, STATI, METEO, FINE_CONTRATTO } from "./baseline.js";
 import { riepilogo } from "./calcoli.js";
 import { el, clear, $, fmtD, fmtTs, nf0, nfOre, toast, errMsg, slug, estensione, MS, todayISO } from "./util.js";
 
@@ -295,7 +295,7 @@ export function disegnaPresenze(A){
 
   if(!lista.length){
     const tr = el("tr"), td = el("td");
-    td.colSpan = 6;
+    td.colSpan = 8;
     const e = el("div","empty");
     e.appendChild(el("i","bi bi-people"));
     e.appendChild(el("b", null, "Giornale vuoto"));
@@ -311,11 +311,23 @@ export function disegnaPresenze(A){
     const tr = el("tr");
     if(r.data !== giornoPrec){ tr.classList.add("nuovo-giorno"); giornoPrec = r.data; }
     tr.appendChild(el("td",null, fmtD(r.data)));
+
+    const tdM = el("td");
+    const m = METEO[r.meteo];
+    if(m){
+      const chip = el("span", "meteo " + r.meteo);
+      chip.appendChild(el("i", "bi " + m.ico));
+      chip.appendChild(el("span", null, m.lab));
+      tdM.appendChild(chip);
+    } else tdM.textContent = "—";
+    tr.appendChild(tdM);
+
     const nome = [r.cognome, r.nome].filter(Boolean).join(" ") || "—";
     tr.appendChild(el("td","forte", nome));
     tr.appendChild(el("td",null, `${nfOre(Number(r.ore) || 0)} h`));
     tr.appendChild(el("td",null, r.lavorazione || "—"));
     tr.appendChild(el("td","col-impresa", r.impresa || "—"));
+    tr.appendChild(el("td", r.note ? "nota" : "muted", r.note || "—"));
     const tdX = el("td");
     if(A.isImpresa()){
       const x = el("button","btn sm danger");

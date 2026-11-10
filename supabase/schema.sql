@@ -227,10 +227,23 @@ create table if not exists public.presenze (
   ore          numeric(4,1) not null default 0 check (ore >= 0 and ore <= 24),
   lavorazione  text,
   impresa      text,
+  meteo        text,
+  note         text,
   creato_da    uuid references public.profili(id),
   creato_il    timestamptz not null default now()
 );
 create index if not exists presenze_data_idx on public.presenze (data desc, cognome);
+-- aggiunte dopo: vedi supabase/meteo-presenze.sql
+alter table public.presenze add column if not exists meteo text;
+alter table public.presenze add column if not exists note  text;
+do $$
+begin
+  alter table public.presenze
+    add constraint presenze_meteo_valido
+    check (meteo is null or meteo in ('soleggiato','pioggia','grandine','neve','vento'));
+exception
+  when duplicate_object then null;
+end $$;
 
 -- -------------------------------------------------------------- richieste --
 create table if not exists public.richieste (

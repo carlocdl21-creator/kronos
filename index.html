@@ -324,7 +324,7 @@
 
       <div class="card impresa-only" hidden>
         <div class="card-hd"><h2>Registra una presenza</h2>
-          <span class="sub">Una riga per ogni operaio presente in cantiere: la giornata, la lavorazione e l'impresa restano compilate per inserire l'operaio successivo.</span>
+          <span class="sub">Una riga per ogni operaio presente in cantiere: la giornata, il meteo, la lavorazione e l'impresa restano compilati per inserire l'operaio successivo.</span>
         </div>
         <div class="card-bd">
           <div class="formgrid">
@@ -334,6 +334,19 @@
             <label class="field"><span>Ore</span><input type="number" id="mnOre" min="0" max="24" step="0.5" value="8"></label>
             <label class="field"><span>Lavorazione</span><input type="text" id="mnLavorazione" placeholder="Es. getto delle fondazioni"></label>
             <label class="field"><span>Impresa</span><input type="text" id="mnImpresa" placeholder="Impresa esecutrice"></label>
+            <label class="field"><span>Meteo</span>
+              <select id="mnMeteo">
+                <option value="">Non indicato</option>
+                <option value="soleggiato">Soleggiato</option>
+                <option value="pioggia">Pioggia</option>
+                <option value="grandine">Grandine</option>
+                <option value="neve">Neve</option>
+                <option value="vento">Vento</option>
+              </select>
+            </label>
+            <label class="field larga"><span>Note <small>facoltative</small></span>
+              <input type="text" id="mnNote" placeholder="Es. mezza giornata per visita medica">
+            </label>
           </div>
           <div class="row-end"><button class="btn primary push" id="mnSave"><i class="bi bi-person-plus"></i> Aggiungi presenza</button></div>
         </div>
@@ -343,7 +356,7 @@
         <div class="card-hd"><h2>Giornale di cantiere</h2><span class="sub" id="mnSub">—</span></div>
         <div class="card-bd flush tscroll">
           <table class="data">
-            <thead><tr><th>Giornata</th><th>Cognome e nome</th><th>Ore</th><th>Lavorazione</th><th class="col-impresa">Impresa</th><th></th></tr></thead>
+            <thead><tr><th>Giornata</th><th>Meteo</th><th>Cognome e nome</th><th>Ore</th><th>Lavorazione</th><th class="col-impresa">Impresa</th><th>Note</th><th></th></tr></thead>
             <tbody id="tbMano"></tbody>
           </table>
         </div>

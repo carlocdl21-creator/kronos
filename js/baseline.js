@@ -80,6 +80,17 @@ export const FOGLIE = BASE.filter(r => r.foglia);
 export const TRACCIATE = FOGLIE.filter(r => !r.continua);
 export const COSTO_TRACCIATO = TRACCIATE.reduce((a, r) => a + r.costo, 0);
 
+/* Il meteo del giornale di cantiere. Valori chiusi, gli stessi che il
+   database accetta: una giornata di pioggia è la giustificazione più
+   frequente di uno scostamento, e deve restare confrontabile nel tempo. */
+export const METEO = {
+  soleggiato: {lab:"Soleggiato", ico:"bi-sun-fill"},
+  pioggia:    {lab:"Pioggia",    ico:"bi-cloud-rain-fill"},
+  grandine:   {lab:"Grandine",   ico:"bi-cloud-hail-fill"},
+  neve:       {lab:"Neve",       ico:"bi-snow"},
+  vento:      {lab:"Vento",      ico:"bi-wind"}
+};
+
 export const STATI = {
   nuova:       {lab:"Nuova",           pill:"info"},
   presa:       {lab:"Presa in carico", pill:"warn"},
