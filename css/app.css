@@ -345,6 +345,16 @@ textarea{resize:vertical;min-height:84px;line-height:1.55}
 .grow[data-liv="0"] .gbar.real,.grow[data-liv="1"] .gbar.real,.grow[data-liv="2"] .gbar.real{
   height:8px;top:calc(50% - 4px);border-radius:3px;border-width:1px
 }
+/* Le righe di raggruppamento — OG1, Strutture, Architettonico — non sono
+   lavorazioni che si confrontano: riassumono quelle sotto. Vanno in blu come
+   il contratto, così il verde resta riservato all'avanzamento vero, quello
+   dichiarato riga per riga. */
+.grow[data-liv="0"] .gbar.real,
+.grow[data-liv="1"] .gbar.real,
+.grow[data-liv="2"] .gbar.real{background:var(--contratto-bg);border-color:var(--contratto)}
+.grow[data-liv="0"] .gbar.real > .fill,
+.grow[data-liv="1"] .gbar.real > .fill,
+.grow[data-liv="2"] .gbar.real > .fill{background:var(--contratto)}
 .gbar.real.editabile{cursor:grab}
 .gbar.real.editabile:active{cursor:grabbing}
 /* scostamento senza motivo: rosso, sempre accompagnato dall'etichetta con icona */
