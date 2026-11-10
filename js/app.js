@@ -7,6 +7,7 @@ import { BASE, BY_ID, METEO, INIZIO_CONTRATTO, FINE_CONTRATTO } from "./baseline
 import { calc } from "./calcoli.js";
 import { disegnaGantt, scala, larghezzaEtichette } from "./gantt.js";
 import { disegnaCurva } from "./curva.js";
+import { collegaCalendario } from "./calendario.js";
 import {
   disegnaKpi, disegnaFoto, disegnaDdt, disegnaPresenze,
   disegnaRichieste, riempiSelettoriFase
@@ -632,9 +633,11 @@ $("mnSave").addEventListener("click", async () => {
       note: $("mnNote").value.trim()
     });
     toast(`Presenza di ${[cognome, nome].filter(Boolean).join(" ")} registrata.`);
-    // giornata, meteo, lavorazione e impresa restano: si passa all'operaio
-    // successivo. La nota no: riguarda la singola persona.
-    $("mnNome").value = ""; $("mnCognome").value = ""; $("mnNote").value = "";
+    // Si svuota tutto quello che cambia da una persona all'altra, così il
+    // campo è già pronto e non c'è da cancellare a mano. Restano soltanto
+    // la giornata e il meteo, che sono della giornata e non dell'operaio.
+    for(const id of ["mnNome","mnCognome","mnLavorazione","mnImpresa","mnNote"]) $(id).value = "";
+    $("mnOre").value = "8";
     $("mnCognome").focus();
     await ricarica();
   }catch(e){ toast(errMsg(e)); }
@@ -756,6 +759,9 @@ for(const [tinta, icona, titolo, valore] of [
 $("lgData").textContent = fmtD(INIZIO_CONTRATTO);
 $("mnData").value = A.oggi;
 $("mnImpresa").value = "";
+// dopo aver messo i valori: il calendario legge il campo quando si collega
+collegaCalendario($("mnData"));
+collegaCalendario($("rqDue"));
 try{
   const t = localStorage.getItem("kronos.tab");
   selezionaTab(t && ["crono","foto","ddt","mano","req"].includes(t) ? t : "crono");
