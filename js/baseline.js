@@ -32,7 +32,7 @@ export const IMPORTO_LAVORI = 771395.62;
 const BASE_GARA = [
   {n:4,  id:"og1",        liv:1, nome:"OG1 · Edifici civili e industriali",  durata:121, i:"2026-08-01", f:"2026-11-29", costo:399928.50},
   {n:5,  id:"og1_strut",  liv:2, nome:"Strutture",                           durata:52,  i:"2026-08-01", f:"2026-09-21", costo:75245.06},
-  {n:6,  id:"fondazioni", liv:3, nome:"Fondazioni",                          durata:26,  i:"2026-08-01", f:"2026-08-26", costo:65007.51, foglia:true},
+  {n:6,  id:"fondazioni", liv:3, nome:"Accantieramento",                     durata:26,  i:"2026-08-01", f:"2026-08-26", costo:65007.51, foglia:true},
   {n:7,  id:"impermeab",  liv:3, nome:"Impermeabilizzazioni",                durata:5,   i:"2026-08-27", f:"2026-08-31", costo:7593.61,  foglia:true},
   {n:8,  id:"cop_strut",  liv:3, nome:"Copertura (strutture)",               durata:5,   i:"2026-09-17", f:"2026-09-21", costo:2643.94,  foglia:true},
   {n:9,  id:"og1_arch",   liv:2, nome:"Architettonico",                      durata:55,  i:"2026-09-20", f:"2026-11-13", costo:254204.09},
