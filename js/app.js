@@ -13,7 +13,7 @@ import {
   disegnaRichieste, riempiSelettoriFase
 } from "./views.js";
 import {
-  $, el, clear, toast, errMsg, fmtD, nf2, todayISO, csv, scaricaTesto, scaricaBlob,
+  $, el, clear, toast, errMsg, fmtD, todayISO, scaricaBlob,
   alleggerisciImmagine, peso
 } from "./util.js";
 
@@ -671,27 +671,89 @@ $("rqSend").addEventListener("click", async () => {
 
 /* ───────────────────────────── esportazioni ───────────────────────────── */
 
+/** Intestazione comune ai fogli: dice di quale commessa si tratta e a che data. */
+const intestazione = () =>
+  `Commessa 3613 · Nuovo Asilo Nido Comunale, Marcaria (MN) · CIG BC7A0B7386 — ` +
+  `consegna lavori ${fmtD(INIZIO_CONTRATTO)}, termine ${fmtD(FINE_CONTRATTO)} · ` +
+  `estratto il ${fmtD(A.oggi)}`;
+
+async function esporta(o){
+  const btn = o.pulsante;
+  const prima = btn.innerHTML;
+  btn.disabled = true;
+  btn.textContent = "Preparo…";
+  try{
+    const { scaricaExcel } = await import("./excel.js");
+    await scaricaExcel(o.cartella);
+  }catch(e){ toast(errMsg(e)); }
+  finally{ btn.disabled = false; btn.innerHTML = prima; }
+}
+
 $("expCsv").addEventListener("click", () => {
-  const rows = [["N","Attività","Livello","Contratto inizio","Contratto fine","Durata (gg)","Importo",
-                 "Reale inizio","Reale fine","Avanzamento %","Δ inizio (gg)","Δ fine (gg)","Motivo dello scostamento"]];
+  const righe = [];
   for(const r of BASE){
     const c = (r.foglia && !r.continua) ? calc(r, A.dati.fasi[r.id] || {}, A.oggi) : null;
-    rows.push([r.n, r.nome, r.liv, fmtD(r.i), fmtD(r.f), r.durata, nf2(r.costo),
+    righe.push([r.n, r.nome, r.liv, fmtD(r.i), fmtD(r.f), r.durata, r.costo,
       c?.inizio ? fmtD(c.inizio) : "", c?.fine ? fmtD(c.fine) : "",
       c ? c.av : "", c ? c.dI : "", c ? c.dF : "", c ? c.just : ""]);
   }
-  scaricaTesto(csv(rows), "cronoprogramma-3613-asilo-marcaria.csv");
+  esporta({
+    pulsante: $("expCsv"),
+    cartella: {
+      nomeFile: "KRONOS cronoprogramma 3613",
+      titolo: "Cronoprogramma: contratto e avanzamento reale",
+      sottotitolo: intestazione(),
+      fogli: [{
+        nome: "Cronoprogramma",
+        colonne: [
+          {testo:"N",                        largh:5,  tipo:"numero"},
+          {testo:"Lavorazione",              largh:34},
+          {testo:"Liv.",                     largh:6,  tipo:"numero"},
+          {testo:"Contratto inizio",         largh:15, tipo:"data"},
+          {testo:"Contratto fine",           largh:15, tipo:"data"},
+          {testo:"Durata (gg)",              largh:11, tipo:"numero"},
+          {testo:"Importo",                  largh:14, tipo:"euro"},
+          {testo:"Reale inizio",             largh:14, tipo:"data"},
+          {testo:"Reale fine",               largh:14, tipo:"data"},
+          {testo:"Avanzamento %",            largh:14, tipo:"numero"},
+          {testo:"Δ inizio (gg)",            largh:12, tipo:"numero"},
+          {testo:"Δ fine (gg)",              largh:12, tipo:"numero"},
+          {testo:"Motivo dello scostamento", largh:52}
+        ],
+        righe
+      }]
+    }
+  });
 });
 
 $("mnCsv").addEventListener("click", () => {
-  const rows = [["Giornata","Meteo","Cognome","Nome","Ore","Lavorazione","Impresa","Note"]];
-  for(const r of A.dati.presenze.slice().sort((a,b) =>
+  const righe = A.dati.presenze.slice().sort((a,b) =>
       String(a.data||"").localeCompare(String(b.data||"")) ||
-      String(a.cognome||"").localeCompare(String(b.cognome||"")))){
-    rows.push([fmtD(r.data), METEO[r.meteo]?.lab || "", r.cognome||"", r.nome||"",
-               r.ore ?? 0, r.lavorazione||"", r.impresa||"", r.note||""]);
-  }
-  scaricaTesto(csv(rows), "presenze-cantiere-3613.csv");
+      String(a.cognome||"").localeCompare(String(b.cognome||"")))
+    .map(r => [fmtD(r.data), METEO[r.meteo]?.lab || "", r.cognome||"", r.nome||"",
+               Number(r.ore) || 0, r.lavorazione||"", r.impresa||"", r.note||""]);
+  esporta({
+    pulsante: $("mnCsv"),
+    cartella: {
+      nomeFile: "KRONOS presenze 3613",
+      titolo: "Giornale di cantiere: presenze",
+      sottotitolo: intestazione(),
+      fogli: [{
+        nome: "Presenze",
+        colonne: [
+          {testo:"Giornata",    largh:12, tipo:"data"},
+          {testo:"Meteo",       largh:13},
+          {testo:"Cognome",     largh:18},
+          {testo:"Nome",        largh:16},
+          {testo:"Ore",         largh:8,  tipo:"numero"},
+          {testo:"Lavorazione", largh:40},
+          {testo:"Impresa",     largh:26},
+          {testo:"Note",        largh:46}
+        ],
+        righe
+      }]
+    }
+  });
 });
 
 /* ───────────────────────────── navigazione ───────────────────────────── */

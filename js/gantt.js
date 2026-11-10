@@ -119,7 +119,12 @@ export function disegnaGantt(gbody, o){
     const tr = el("div","gtrack");
     tr.style.backgroundImage = griglia;
 
-    if(contratto){
+    /* Le righe di raggruppamento — OG1, Strutture, Architettonico — restano
+       come intestazioni di sezione, senza barre: ripetevano in forma vaga
+       quello che le lavorazioni sotto dicono con precisione. */
+    const riepilogo = !r.foglia;
+
+    if(contratto && !riepilogo){
       /* ---------- barra di contratto ---------- */
       const b = el("div","gbar contratto");
       b.style.left = x(r.i) + "px";
@@ -127,7 +132,7 @@ export function disegnaGantt(gbody, o){
       b.title = `${r.nome}\nContratto: ${fmtD(r.i)} → ${fmtD(r.f)} (${r.durata} gg)`;
       tr.appendChild(b);
     }
-    if(reale){
+    if(reale && !riepilogo){
       /* ---------- tavola reale ---------- */
       const b = barraReale(r, fasi, oggi);
       const tracciabile = r.foglia && !r.continua;
