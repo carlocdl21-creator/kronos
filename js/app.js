@@ -819,6 +819,7 @@ for(const [tinta, icona, titolo, valore] of [
 // La consegna dei lavori sul pannello d'ingresso viene da baseline.js:
 // ridatare la commessa deve bastare, senza ritoccare anche la pagina.
 $("lgData").textContent = fmtD(INIZIO_CONTRATTO);
+$("lgQuante").textContent = `${BASE.length} lavorazioni`;
 $("mnData").value = A.oggi;
 $("mnImpresa").value = "";
 // dopo aver messo i valori: il calendario legge il campo quando si collega
