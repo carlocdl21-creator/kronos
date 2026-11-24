@@ -240,7 +240,7 @@ do $$
 begin
   alter table public.presenze
     add constraint presenze_meteo_valido
-    check (meteo is null or meteo in ('soleggiato','pioggia','grandine','neve','vento'));
+    check (meteo is null or meteo in ('soleggiato','variabile','pioggia','grandine','neve','vento'));
 exception
   when duplicate_object then null;
 end $$;

@@ -90,11 +90,12 @@ export const COSTO_TRACCIATO = TRACCIATE.reduce((a, r) => a + r.costo, 0);
    database accetta: una giornata di pioggia è la giustificazione più
    frequente di uno scostamento, e deve restare confrontabile nel tempo. */
 export const METEO = {
-  soleggiato: {lab:"Soleggiato", ico:"bi-sun-fill"},
-  pioggia:    {lab:"Pioggia",    ico:"bi-cloud-rain-fill"},
-  grandine:   {lab:"Grandine",   ico:"bi-cloud-hail-fill"},
-  neve:       {lab:"Neve",       ico:"bi-snow"},
-  vento:      {lab:"Vento",      ico:"bi-wind"}
+  soleggiato: {lab:"Soleggiato",      ico:"bi-sun-fill"},
+  variabile:  {lab:"Tempo variabile", ico:"bi-cloud-sun-fill"},
+  pioggia:    {lab:"Pioggia",         ico:"bi-cloud-rain-fill"},
+  grandine:   {lab:"Grandine",        ico:"bi-cloud-hail-fill"},
+  neve:       {lab:"Neve",            ico:"bi-snow"},
+  vento:      {lab:"Vento",           ico:"bi-wind"}
 };
 
 export const STATI = {
