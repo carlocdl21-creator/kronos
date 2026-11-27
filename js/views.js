@@ -135,46 +135,120 @@ export function disegnaFoto(A){
     grid.appendChild(e);
     return;
   }
-  for(const f of lista) grid.appendChild(schedaFoto(A, f));
+  const voci = lista.map(f => voceFoto(A, f));
+  for(let i = 0; i < voci.length; i++) grid.appendChild(tessera(A, voci, i));
 }
 
-function schedaFoto(A, f){
-  const card = el("div","filecard");
-  const ph = el("div","ph","Caricamento…");
-  const img = document.createElement("img");
-  img.alt = f.didascalia || "Foto della lavorazione";
-  img.loading = "lazy";
-  img.addEventListener("error", () => { clear(ph); ph.textContent = "Immagine non disponibile"; });
-  A.store.urlFile(f.path).then(u => {
-    if(!u){ clear(ph); ph.textContent = "Immagine non disponibile"; return; }
-    img.src = u; clear(ph); ph.appendChild(img);
-  }).catch(() => { clear(ph); ph.textContent = "Immagine non disponibile"; });
-  ph.addEventListener("click", () => lightbox(A, f));
-  card.appendChild(ph);
+/* ══════════════════════════ GALLERIA ══════════════════════════
 
-  const meta = el("div","meta");
-  if(f.didascalia) meta.appendChild(el("div","nome", f.didascalia));
-  meta.appendChild(el("div","sub", `${fmtTs(f.creatoIl)}${f.autore ? " · " + f.autore : ""}`));
+   Una tessera sola per le foto delle lavorazioni e per le bolle:
+   l'immagine riempie il riquadro, la didascalia le sta sopra in
+   sovraimpressione — data, ora e autore, che è quello che si cerca
+   davvero quando si torna a guardare un cantiere — e le azioni
+   compaiono all'angolo quando ci si passa sopra. Al clic la foto si
+   apre a tutto schermo, con le frecce per scorrere tutta la cartella
+   senza tornare indietro ogni volta.
+   ══════════════════════════════════════════════════════════════ */
 
-  const acts = el("div","acts");
-  const bd = el("button","btn sm ghost");
+/** La foto di una lavorazione, normalizzata per la galleria. */
+function voceFoto(A, f){
+  return {
+    path: f.path,
+    immagine: true,
+    titolo: f.didascalia || BY_ID[f.faseId]?.nome || "Foto della lavorazione",
+    contesto: BY_ID[f.faseId]?.nome || "",
+    quando: fmtTs(f.creatoIl),
+    autore: f.autore || "",
+    nomeScarico: nomeFoto(f),
+    conferma: "Eliminare definitivamente questa foto?",
+    elimina: () => A.store.eliminaFoto(f)
+  };
+}
+
+const sottotitolo = v => v.quando + (v.autore ? " · " + v.autore : "");
+
+/** Il riquadro grigio quando l'immagine non arriva: niente scatole rotte. */
+function guasto(testo){
+  const g = el("span","guasto");
+  g.appendChild(el("i","bi bi-image-alt"));
+  g.appendChild(el("span", null, testo || "Immagine non disponibile"));
+  return g;
+}
+
+/**
+ * Una tessera della galleria.
+ * @param {object} A contesto dell'applicativo
+ * @param {Array}  voci tutte le voci della cartella: servono al visore
+ * @param {number} i quale di queste
+ */
+function tessera(A, voci, i){
+  const v = voci[i];
+  const box = el("div", "tessera" + (v.immagine ? "" : " doc"));
+
+  const apri = el("button","tessera-apri");
+  apri.type = "button";
+
+  if(v.immagine){
+    apri.setAttribute("aria-label", `Apri a tutto schermo: ${v.titolo}`);
+    const scheletro = el("span","scheletro");
+    apri.appendChild(scheletro);
+    const img = document.createElement("img");
+    img.alt = v.titolo;
+    img.loading = "lazy";
+    img.decoding = "async";
+    img.addEventListener("load",  () => { scheletro.remove(); img.classList.add("vista"); });
+    img.addEventListener("error", () => { scheletro.remove(); apri.appendChild(guasto()); });
+    A.store.urlFile(v.path).then(u => {
+      if(!u){ scheletro.remove(); apri.appendChild(guasto()); return; }
+      v.url = u; img.src = u;
+    }).catch(() => { scheletro.remove(); apri.appendChild(guasto()); });
+    apri.appendChild(img);
+    apri.addEventListener("click", () => apriVisore(A, voci, i));
+  } else {
+    apri.setAttribute("aria-label", `Scarica: ${v.titolo}`);
+    apri.appendChild(el("i","doc-ico bi bi-filetype-pdf"));
+    apri.addEventListener("click", () => A.scaricaFile(v.path, v.nomeScarico));
+  }
+
+  const velo = el("span","velo");
+  const lente = el("span","lente");
+  lente.appendChild(el("i", v.immagine ? "bi bi-arrows-angle-expand" : "bi bi-download"));
+  velo.appendChild(lente);
+  apri.appendChild(velo);
+
+  const cap = el("span","didascalia");
+  cap.appendChild(el("b", null, v.titolo));
+  cap.appendChild(el("span", null, sottotitolo(v)));
+  apri.appendChild(cap);
+
+  box.appendChild(apri);
+
+  /* Le azioni stanno fuori dal pulsante che apre: un bottone dentro un
+     altro bottone non è HTML valido e la tastiera ci si perde. */
+  const az = el("div","tessera-azioni");
+  const bd = el("button","tondo");
+  bd.type = "button";
+  bd.title = "Scarica";
+  bd.setAttribute("aria-label", `Scarica ${v.titolo}`);
   bd.appendChild(el("i","bi bi-download"));
-  bd.appendChild(el("span", null, "Scarica"));
-  bd.addEventListener("click", () => A.scaricaFile(f.path, nomeFoto(f)));
-  acts.appendChild(bd);
-  if(A.isImpresa()){
-    const bx = el("button","btn sm danger");
+  bd.addEventListener("click", () => A.scaricaFile(v.path, v.nomeScarico));
+  az.appendChild(bd);
+
+  if(A.isImpresa() && v.elimina){
+    const bx = el("button","tondo rosso");
+    bx.type = "button";
+    bx.title = "Elimina";
+    bx.setAttribute("aria-label", `Elimina ${v.titolo}`);
     bx.appendChild(el("i","bi bi-trash"));
     bx.addEventListener("click", async () => {
-      if(!confirm("Eliminare definitivamente questa foto?")) return;
-      try{ await A.store.eliminaFoto(f); toast("Foto eliminata."); await A.ricarica(); }
+      if(!confirm(v.conferma)) return;
+      try{ await v.elimina(); toast("Eliminato."); await A.ricarica(); }
       catch(e){ toast(errMsg(e)); }
     });
-    acts.appendChild(bx);
+    az.appendChild(bx);
   }
-  meta.appendChild(acts);
-  card.appendChild(meta);
-  return card;
+  box.appendChild(az);
+  return box;
 }
 
 function nomeFoto(f){
@@ -183,24 +257,140 @@ function nomeFoto(f){
   return `${base}-${String(f.creatoIl || "").slice(0,10)}-${String(f.id).slice(0,4)}.${ext}`;
 }
 
-async function lightbox(A, f){
-  const url = await A.store.urlFile(f.path);
-  if(!url){ toast("Immagine non disponibile."); return; }
-  const lb = el("div","lightbox");
+/**
+ * Il visore a tutto schermo. Scorre solo le immagini della cartella —
+ * i PDF si scaricano, non si sfogliano — con frecce, tastiera e
+ * trascinamento del dito su telefono.
+ */
+function apriVisore(A, voci, partenza){
+  const foto = voci.filter(v => v.immagine);
+  if(!foto.length) return;
+  let i = Math.max(0, foto.indexOf(voci[partenza]));
+
+  const prima = document.body.style.overflow;
+  let giro = 0;                              // per non far vincere un caricamento vecchio
+
+  const vs = el("div","visore");
+  vs.setAttribute("role","dialog");
+  vs.setAttribute("aria-modal","true");
+  vs.setAttribute("aria-label","Foto a tutto schermo");
+
+  /* ---- barra in alto: che cosa si sta guardando, e le due azioni ---- */
+  const barra = el("div","vs-barra");
+  const tx = el("div","vs-tx");
+  const tit = el("b"); const sub = el("span");
+  tx.appendChild(tit); tx.appendChild(sub);
+  barra.appendChild(tx);
+
+  const gruppo = el("div","vs-azioni");
+  const bScarica = el("button","vs-btn");
+  bScarica.type = "button";
+  bScarica.appendChild(el("i","bi bi-download"));
+  bScarica.appendChild(el("span", null, "Scarica"));
+  bScarica.addEventListener("click", () => A.scaricaFile(foto[i].path, foto[i].nomeScarico));
+  gruppo.appendChild(bScarica);
+
+  const bChiudi = el("button","vs-btn solo");
+  bChiudi.type = "button";
+  bChiudi.title = "Chiudi (Esc)";
+  bChiudi.setAttribute("aria-label","Chiudi");
+  bChiudi.appendChild(el("i","bi bi-x-lg"));
+  gruppo.appendChild(bChiudi);
+  barra.appendChild(gruppo);
+  vs.appendChild(barra);
+
+  /* ---- il palco ---- */
+  const palco = el("div","vs-palco");
+  /* La cornice ha misure proprie: senza, il massimo in percentuale
+     dell'immagine non ha niente su cui calcolarsi e la foto esce dallo
+     schermo. */
+  const cornice = el("div","vs-cornice");
   const img = document.createElement("img");
-  img.src = url; img.alt = f.didascalia || "Foto della lavorazione";
-  lb.appendChild(img);
-  lb.appendChild(el("div","cap",
-    `${BY_ID[f.faseId]?.nome || ""}${f.didascalia ? " — " + f.didascalia : ""} · ${fmtTs(f.creatoIl)}`));
-  const x = el("button","btn sm x","Chiudi");
-  lb.appendChild(x);
-  const close = () => { lb.remove(); document.removeEventListener("keydown", onk); };
-  const onk = ev => { if(ev.key === "Escape") close(); };
-  x.addEventListener("click", close);
-  lb.addEventListener("click", ev => { if(ev.target === lb) close(); });
-  document.addEventListener("keydown", onk);
-  document.body.appendChild(lb);
-  x.focus();
+  img.alt = "";
+  img.addEventListener("load", () => img.classList.add("vista"));
+  cornice.appendChild(img);
+  palco.appendChild(cornice);
+  vs.appendChild(palco);
+
+  const prec = el("button","vs-nav prec");
+  prec.type = "button"; prec.title = "Precedente"; prec.setAttribute("aria-label","Foto precedente");
+  prec.appendChild(el("i","bi bi-chevron-left"));
+  const succ = el("button","vs-nav succ");
+  succ.type = "button"; succ.title = "Successiva"; succ.setAttribute("aria-label","Foto successiva");
+  succ.appendChild(el("i","bi bi-chevron-right"));
+  vs.appendChild(prec); vs.appendChild(succ);
+
+  const conta = el("div","vs-conta");
+  vs.appendChild(conta);
+
+  /* ---- navigazione ---- */
+  async function url(v){
+    if(v.url) return v.url;
+    try{ v.url = await A.store.urlFile(v.path); }catch(e){ v.url = null; }
+    return v.url;
+  }
+
+  async function mostra(n){
+    const mio = ++giro;
+    i = (n + foto.length) % foto.length;
+    const v = foto[i];
+    tit.textContent = v.titolo;
+    sub.textContent = (v.contesto && v.contesto !== v.titolo ? v.contesto + " · " : "") + sottotitolo(v);
+    conta.textContent = `${i + 1} di ${foto.length}`;
+    conta.hidden = foto.length < 2;
+    prec.hidden = succ.hidden = foto.length < 2;
+    img.alt = v.titolo;
+    img.classList.remove("vista");
+    palco.classList.add("attesa");
+    const u = await url(v);
+    if(mio !== giro) return;                   // nel frattempo si è girata pagina
+    palco.classList.remove("attesa");
+    if(!u){ img.removeAttribute("src"); toast("Immagine non disponibile."); return; }
+    img.src = u;
+    /* le vicine si scaricano prima che servano: lo sfoglio resta liscio */
+    for(const k of [i + 1, i - 1]){
+      const w = foto[(k + foto.length) % foto.length];
+      if(w && w !== v) url(w).then(x => { if(x) new Image().src = x; });
+    }
+  }
+
+  const vai = p => mostra(i + p);
+  prec.addEventListener("click", () => vai(-1));
+  succ.addEventListener("click", () => vai(1));
+
+  const chiudi = () => {
+    vs.remove();
+    document.removeEventListener("keydown", tasti);
+    document.body.style.overflow = prima;
+  };
+  const tasti = ev => {
+    if(ev.key === "Escape"){ ev.preventDefault(); chiudi(); }
+    else if(ev.key === "ArrowLeft"){ ev.preventDefault(); vai(-1); }
+    else if(ev.key === "ArrowRight"){ ev.preventDefault(); vai(1); }
+  };
+  bChiudi.addEventListener("click", chiudi);
+  vs.addEventListener("click", ev => {
+    if(ev.target === vs || ev.target === palco || ev.target === cornice) chiudi();
+  });
+  document.addEventListener("keydown", tasti);
+
+  /* dito su telefono: trascinare a destra o a sinistra cambia foto */
+  let x0 = null, y0 = null;
+  palco.addEventListener("touchstart", ev => {
+    x0 = ev.touches[0].clientX; y0 = ev.touches[0].clientY;
+  }, {passive:true});
+  palco.addEventListener("touchend", ev => {
+    if(x0 === null) return;
+    const dx = ev.changedTouches[0].clientX - x0;
+    const dy = ev.changedTouches[0].clientY - y0;
+    x0 = null;
+    if(Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) vai(dx < 0 ? 1 : -1);
+  }, {passive:true});
+
+  document.body.style.overflow = "hidden";
+  document.body.appendChild(vs);
+  mostra(i);
+  bChiudi.focus();
 }
 
 /* ══════════════════════════ BOLLE E DDT ══════════════════════════ */
@@ -229,51 +419,20 @@ export function disegnaDdt(A){
     return;
   }
 
-  for(const r of lista){
-    const card = el("div","filecard");
-    const ph = el("div","ph");
-    const immagine = String(r.tipo || "").startsWith("image/");
-    if(immagine){
-      ph.textContent = "Caricamento…";
-      const img = document.createElement("img");
-      img.alt = r.nomeFile || "Bolla di consegna";
-      img.loading = "lazy";
-      img.addEventListener("error", () => { clear(ph); ph.textContent = "Anteprima non disponibile"; });
-      A.store.urlFile(r.path).then(u => {
-        if(!u){ clear(ph); ph.textContent = "Anteprima non disponibile"; return; }
-        img.src = u; clear(ph); ph.appendChild(img);
-      }).catch(() => { clear(ph); ph.textContent = "Anteprima non disponibile"; });
-      ph.addEventListener("click", () => lightbox(A, {path:r.path, didascalia:r.nomeFile, creatoIl:r.creatoIl, faseId:null}));
-    } else {
-      ph.style.cursor = "default";
-      ph.appendChild(el("i","doc bi bi-filetype-pdf"));
-    }
-    card.appendChild(ph);
-
-    const meta = el("div","meta");
-    meta.appendChild(el("div","nome", r.nomeFile || "Documento"));
-    meta.appendChild(el("div","sub", `${fmtTs(r.creatoIl)}${r.autore ? " · " + r.autore : ""}`));
-
-    const acts = el("div","acts");
-    const bd = el("button","btn sm ghost");
-    bd.appendChild(el("i","bi bi-download"));
-    bd.appendChild(el("span", null, "Scarica"));
-    bd.addEventListener("click", () => A.scaricaFile(r.path, r.nomeFile || `bolla-${String(r.id).slice(0,6)}.pdf`));
-    acts.appendChild(bd);
-    if(A.isImpresa()){
-      const bx = el("button","btn sm danger");
-      bx.appendChild(el("i","bi bi-trash"));
-      bx.addEventListener("click", async () => {
-        if(!confirm(`Eliminare “${r.nomeFile || "il documento"}”?`)) return;
-        try{ await A.store.eliminaDdt(r); toast("Documento eliminato."); await A.ricarica(); }
-        catch(e){ toast(errMsg(e)); }
-      });
-      acts.appendChild(bx);
-    }
-    meta.appendChild(acts);
-    card.appendChild(meta);
-    grid.appendChild(card);
-  }
+  /* Le bolle: le foto scattate al camion si sfogliano come le altre,
+     i PDF allegati si scaricano e basta. */
+  const voci = lista.map(r => ({
+    path: r.path,
+    immagine: String(r.tipo || "").startsWith("image/"),
+    titolo: r.nomeFile || "Documento",
+    contesto: "Bolla di consegna",
+    quando: fmtTs(r.creatoIl),
+    autore: r.autore || "",
+    nomeScarico: r.nomeFile || `bolla-${String(r.id).slice(0,6)}.pdf`,
+    conferma: `Eliminare \u201c${r.nomeFile || "il documento"}\u201d?`,
+    elimina: () => A.store.eliminaDdt(r)
+  }));
+  for(let i = 0; i < voci.length; i++) grid.appendChild(tessera(A, voci, i));
 }
 
 /* ══════════════════════════ PRESENZE ══════════════════════════ */

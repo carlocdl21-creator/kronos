@@ -435,18 +435,81 @@ textarea{resize:vertical;min-height:84px;line-height:1.55}
 .dropzone b{display:block;font-size:.92rem;font-weight:700;color:var(--ink-2);margin-bottom:3px}
 .dropzone small{font-size:.74rem}
 
-.grid-file{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:13px;padding:18px}
-.filecard{border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);
-  overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .18s}
-.filecard:hover{box-shadow:var(--sh-2)}
-.filecard .ph{aspect-ratio:4/3;background:var(--surface-3);display:grid;place-items:center;
-  cursor:zoom-in;overflow:hidden;color:var(--mute-2);font-size:.72rem;text-align:center;padding:8px}
-.filecard .ph img{width:100%;height:100%;object-fit:cover}
-.filecard .ph .doc{font-size:2rem;color:var(--mute)}
-.filecard .meta{padding:10px 12px;display:flex;flex-direction:column;gap:4px;flex:1}
-.filecard .nome{font-size:.78rem;font-weight:600;color:var(--ink-2);word-break:break-word;line-height:1.35}
-.filecard .sub{font-size:.68rem;color:var(--mute)}
-.filecard .acts{display:flex;gap:6px;margin-top:auto;padding-top:8px}
+/* ───────────────────────── galleria ─────────────────────────
+   Le tessere sono la foto: niente cornice bianca attorno a un
+   francobollo. I dati stanno in sovraimpressione sul fondo — data,
+   ora e chi ha scattato, che è quello che si cerca quando si torna a
+   guardare un cantiere — e le azioni compaiono all'angolo.
+   ─────────────────────────────────────────────────────────────── */
+.grid-file{display:grid;grid-template-columns:repeat(auto-fill,minmax(206px,1fr));gap:14px;padding:18px}
+
+.tessera{position:relative;aspect-ratio:4/3;border-radius:var(--r-lg);overflow:hidden;
+  background:var(--surface-3);box-shadow:var(--sh-1);
+  transition:box-shadow .2s var(--ease),transform .2s var(--ease)}
+.tessera:hover{box-shadow:var(--sh-3);transform:translateY(-2px)}
+.tessera-apri{position:absolute;inset:0;width:100%;height:100%;display:block;
+  border:0;padding:0;background:none;cursor:zoom-in;overflow:hidden;text-align:left}
+.tessera-apri img{width:100%;height:100%;object-fit:cover;opacity:0;
+  transition:opacity .35s var(--ease),transform .45s var(--ease)}
+.tessera-apri img.vista{opacity:1}
+.tessera:hover .tessera-apri img{transform:scale(1.045)}
+
+/* la sovraimpressione */
+.tessera .didascalia{position:absolute;left:0;right:0;bottom:0;padding:30px 11px 9px;
+  display:flex;flex-direction:column;gap:1px;pointer-events:none;
+  background:linear-gradient(to top,rgba(10,10,10,.84) 0%,rgba(10,10,10,.5) 44%,rgba(10,10,10,0) 100%)}
+.tessera .didascalia b{font-size:.76rem;font-weight:600;color:#fff;line-height:1.32;
+  display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  text-shadow:0 1px 3px rgba(0,0,0,.45)}
+.tessera .didascalia span{font-size:.67rem;color:rgba(255,255,255,.78);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  text-shadow:0 1px 3px rgba(0,0,0,.45)}
+
+/* il velo con la lente, al passaggio del mouse */
+.tessera .velo{position:absolute;inset:0;display:grid;place-items:center;
+  background:rgba(10,10,10,.3);opacity:0;transition:opacity .2s var(--ease)}
+.tessera:hover .velo,.tessera-apri:focus-visible .velo{opacity:1}
+.tessera .lente{width:46px;height:46px;border-radius:999px;background:rgba(255,255,255,.95);
+  color:var(--ink);display:grid;place-items:center;font-size:1.02rem;box-shadow:var(--sh-2);
+  transform:scale(.84);transition:transform .2s var(--ease)}
+.tessera:hover .lente,.tessera-apri:focus-visible .lente{transform:scale(1)}
+
+.tessera-azioni{position:absolute;top:8px;right:8px;display:flex;gap:6px;z-index:2;
+  opacity:0;transform:translateY(-5px);
+  transition:opacity .18s var(--ease),transform .18s var(--ease)}
+.tessera:hover .tessera-azioni,.tessera:focus-within .tessera-azioni{opacity:1;transform:none}
+.tondo{width:32px;height:32px;border-radius:999px;border:0;cursor:pointer;
+  background:rgba(255,255,255,.95);color:var(--ink-2);display:grid;place-items:center;
+  font-size:.8rem;box-shadow:var(--sh-2);
+  transition:background .15s,color .15s,transform .15s var(--ease)}
+.tondo:hover{background:#fff;transform:scale(1.07)}
+.tondo.rosso:hover{background:var(--no);color:#fff}
+
+/* in attesa dell'immagine, e quando non arriva */
+.scheletro{position:absolute;inset:0;
+  background:linear-gradient(100deg,var(--surface-3) 30%,#efeff1 48%,var(--surface-3) 66%);
+  background-size:260% 100%;animation:sfuma 1.3s var(--ease) infinite}
+@keyframes sfuma{from{background-position:140% 0}to{background-position:-40% 0}}
+.guasto{position:absolute;inset:0;display:grid;align-content:center;justify-items:center;gap:5px;
+  color:var(--mute);font-size:.7rem;text-align:center;padding:12px}
+.guasto i{font-size:1.5rem;color:var(--mute-2)}
+
+/* i PDF non si sfogliano: si scaricano */
+.tessera.doc{background:var(--surface);border:1px solid var(--line)}
+.tessera.doc .tessera-apri{cursor:pointer;display:grid;place-items:center}
+.tessera.doc .doc-ico{font-size:2.5rem;color:#b91c1c;opacity:.8;margin-bottom:30px}
+.tessera.doc .didascalia{padding-top:16px;
+  background:linear-gradient(to top,var(--surface) 58%,rgba(255,255,255,0))}
+.tessera.doc .didascalia b{color:var(--ink-2);text-shadow:none}
+.tessera.doc .didascalia span{color:var(--mute);text-shadow:none}
+.tessera.doc .velo{background:rgba(250,250,250,.6)}
+.tessera.doc .tondo{border:1px solid var(--line)}
+
+/* su telefono e tablet non esiste il passaggio del mouse */
+@media (hover:none){
+  .tessera-azioni{opacity:1;transform:none}
+  .tessera .velo{display:none}
+}
 
 .empty{padding:44px 20px;text-align:center;color:var(--mute)}
 .empty i{font-size:2rem;color:var(--mute-2);display:block;margin-bottom:8px}
@@ -516,12 +579,41 @@ table.data tr:last-child td{border-bottom:none}
 table.data tr:hover td{background:var(--surface-2)}
 
 /* ───────────────────────────── sovrapposizioni ───────────────────────────── */
-.lightbox{position:fixed;inset:0;background:rgba(10,10,10,.88);z-index:70;display:flex;
-  align-items:center;justify-content:center;padding:28px}
-.lightbox img{max-width:100%;max-height:82vh;object-fit:contain;border-radius:var(--r-md)}
-.lightbox .cap{position:absolute;bottom:22px;left:0;right:0;text-align:center;color:#e4e4e7;
-  font-size:.82rem;padding-inline:20px}
-.lightbox .x{position:absolute;top:18px;right:20px}
+/* Il visore: la foto a tutto schermo, con le frecce per sfogliare
+   tutta la cartella senza tornare indietro ogni volta. */
+.visore{position:fixed;inset:0;z-index:70;display:flex;flex-direction:column;
+  background:rgba(9,9,11,.95);backdrop-filter:blur(8px);animation:entra .18s var(--ease)}
+@keyframes entra{from{opacity:0}to{opacity:1}}
+.vs-barra{flex:0 0 auto;display:flex;align-items:center;gap:14px;padding:14px 18px;position:relative;z-index:2;
+  background:linear-gradient(to bottom,rgba(0,0,0,.5),rgba(0,0,0,0))}
+.vs-tx{flex:1;min-width:0;display:flex;flex-direction:column}
+.vs-tx b{color:#fff;font-size:.86rem;font-weight:600;letter-spacing:-.2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vs-tx span{color:rgba(255,255,255,.62);font-size:.73rem;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vs-azioni{flex:0 0 auto;display:flex;gap:8px}
+.vs-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:36px;padding:0 15px;
+  border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.09);
+  color:#fff;font-size:.78rem;font-weight:500;cursor:pointer;transition:background .15s}
+.vs-btn:hover{background:rgba(255,255,255,.2)}
+.vs-btn.solo{width:36px;padding:0}
+.vs-palco{flex:1;min-height:0;position:relative}
+.vs-cornice{position:absolute;inset:4px 66px 50px;display:flex;align-items:center;justify-content:center}
+.vs-cornice img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;
+  border-radius:var(--r-md);box-shadow:0 24px 64px rgba(0,0,0,.5);
+  opacity:0;transition:opacity .25s var(--ease)}
+.vs-cornice img.vista{opacity:1}
+.vs-palco.attesa::after{content:"";position:absolute;width:30px;height:30px;border-radius:999px;
+  border:2.5px solid rgba(255,255,255,.22);border-top-color:#fff;animation:gira .8s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
+.vs-nav{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.1);color:#fff;
+  display:grid;place-items:center;font-size:1.05rem;cursor:pointer;transition:background .15s}
+.vs-nav:hover{background:rgba(255,255,255,.24)}
+.vs-nav.prec{left:16px}
+.vs-nav.succ{right:16px}
+.vs-conta{position:absolute;bottom:18px;left:0;right:0;text-align:center;
+  color:rgba(255,255,255,.68);font-size:.74rem;letter-spacing:.3px}
 
 .modale{position:fixed;inset:0;background:rgba(10,10,10,.42);z-index:80;display:grid;place-items:center;padding:20px}
 .modale-box{background:var(--surface);border-radius:var(--r-xl);box-shadow:var(--sh-3);
@@ -667,9 +759,20 @@ table.data td.forte{font-weight:600;color:var(--ink-2)}
 }
 
 @media (max-width:560px){
+  .vs-cornice{inset:4px 8px 44px}
+  .vs-nav{width:38px;height:38px;font-size:.95rem}
+  .vs-nav.prec{left:6px}
+  .vs-nav.succ{right:6px}
+  .vs-btn{width:36px;padding:0}
+  .vs-btn span{display:none}
   .folders{grid-template-columns:repeat(2,1fr);gap:9px;padding:12px}
   .folder{flex-direction:column;align-items:flex-start;gap:8px;padding:12px}
   .grid-file{grid-template-columns:repeat(2,1fr);gap:9px;padding:12px}
+  /* tessere quadrate: in due colonne strette la didascalia ha bisogno d'aria */
+  .tessera{aspect-ratio:1/1}
+  .tessera .didascalia{padding:24px 9px 8px}
+  .tessera .didascalia b{font-size:.72rem}
+  .tessera.doc .doc-ico{font-size:2.1rem;margin-bottom:22px}
   table.data{min-width:0;font-size:.76rem}
   table.data th,table.data td{padding:9px 7px}
   .col-impresa{display:none}
